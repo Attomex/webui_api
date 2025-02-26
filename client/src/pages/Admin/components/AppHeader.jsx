@@ -28,10 +28,10 @@ import {
 } from "@coreui/icons";
 
 import { AppHeaderDropdown } from "./header/index";
+import { logOut } from "../../../utils/auth";
 
-// import { Inertia } from "@inertiajs/inertia";
+import { Button } from "react-bootstrap";
 
-// import PrimaryButton from "@/Components/PrimaryButton";
 const AppHeader = () => {
     const headerRef = useRef();
     const { colorMode, setColorMode } = useColorModes(
@@ -135,11 +135,12 @@ const AppHeader = () => {
                         <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
                     </li>
                     <AppHeaderDropdown />
-                    {/* <PrimaryButton
-                        onClick={() => Inertia.post("/admin/logout")}
+                    <Button
+                        variant="primary"
+                        onClick={() => logOut()}
                     >
                         Выйти из админ панели
-                    </PrimaryButton> */}
+                    </Button>
                 </CHeaderNav>
             </CContainer>
         </CHeader>

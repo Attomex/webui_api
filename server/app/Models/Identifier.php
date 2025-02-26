@@ -16,4 +16,10 @@ class Identifier extends Model
         return $this->belongsToMany(ReportVulnerability::class, 'report_vulnerability_identifiers', 'identifier_id', 'report_vulnerability_id');
     }
 
+    // Отношение с таблицей identifiers_count
+    public function identifierCount()
+    {
+        return $this->hasOne(IdentifierCount::class, 'identifier_id');
+    }
+
 }

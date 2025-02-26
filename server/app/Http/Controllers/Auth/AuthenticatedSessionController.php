@@ -11,43 +11,11 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthenticatedSessionController extends Controller
 {
-    public function login(Request $request): JsonResponse
+    public function login(LoginRequest $request): Response
     {
-        \Log::info("Пытаемся залогинить {$request->email}");
+        $request->authenticate();
 
-        // Валидация входных данных
-        $request->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-        ]);
-
-        \Log::info("{$request->email} прошел валидацию.");
-
-        // Попытка аутентификации
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
-        }
-
-        \Log::info("{$request->email} прошел аутентификацию.");
-
-        // Получаем аутентифицированного пользователя
-        $user = $request->user();
-
-        // Генерация токена
-        $token = $user->createToken('auth-token for ' . $user['name'])->plainTextToken;
-
-        \Log::info("{$request->email} получил токен.");
-
-        // Возвращаем JSON с пользователем и токеном
-        return response()->json([
-            'user' => $user,
-            'token' => $token,
-        ]);
-    }
-
-    public function logout(Request $request){
-        
-        $request->user()->currentAccessToken()->delete();
+        $request->session()->regenerate();
 
         return response()->noContent();
     }

@@ -32,7 +32,7 @@ class RegisteredUserController extends Controller
 
         // \Log::info("{$request->name} прошел валидацию.");
 
-        $user = User::create([
+        User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
@@ -42,7 +42,7 @@ class RegisteredUserController extends Controller
 
         // event(new Registered($user));
 
-        Auth::login($user);
+        // Auth::login($user);
 
         return response()->json(['status' => 'success'], 201);
     }

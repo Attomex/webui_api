@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React from "react";
 // import { useRole } from "../hooks/useRole";
 import { Link } from 'react-router-dom';
 
@@ -16,21 +16,18 @@ const AppSidebar = () => {
 
     const commonItems = [
         { name: "Просмотр отчётов", href: '/admin/view' },
-        { name: "Загрузка отчётов", href:  '/admin/upload' },
-        { name: "Сравнить отчёты", href:  '/admin/comparison' },
-        { name: "Скачать отчёт", href:  '/admin/download' },
+        { name: "Загрузка отчётов", href: '/admin/upload' },
+        { name: "Сравнить отчёты", href: '/admin/comparison' },
+        { name: "Скачать отчёт", href: '/admin/download' },
+        { name: "Поиск", href: '/admin/search' },
     ];
 
     const superAdminItem = {
         name: "Управление",
-        href: '/admin/createadmin',
+        href: '/admin/createAdmin',
     };
 
-    const items = useMemo(() => {
-        return role === "SuperAdmin"
-            ? [...commonItems, superAdminItem]
-            : commonItems;
-    }, [role]);
+    const items = role === 'SuperAdmin' ? [...commonItems, superAdminItem] : commonItems;
 
     return (
         <CSidebar className="border-end" colorScheme="dark" position="fixed">

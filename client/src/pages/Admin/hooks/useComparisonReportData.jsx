@@ -1,6 +1,5 @@
-// useReportData.js
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../../utils/api";
 
 const useComparisonReportData = (selectedComputer, selectedNewDate, selectedOldDate) => {
     const [newDateOptions, setNewDateOptions] = useState([]);
@@ -8,14 +7,12 @@ const useComparisonReportData = (selectedComputer, selectedNewDate, selectedOldD
     const [newReportNumberOptions, setNewReportNumberOptions] = useState([]);
     const [oldReportNumberOptions, setOldReportNumberOptions] = useState([]);
 
-    const url = process.env.REACT_APP_API_URL;
-
     useEffect(() => {
         const getUniqueDates = async () => {
             if (selectedComputer) {
                 try {
-                    const response = await axios.get(
-                        `${url}/api/admin/getReportsByComputer?computer_identifier=${selectedComputer}`
+                    const response = await api().get(
+                        `/api/admin/getReportsByComputer?computer_identifier=${selectedComputer}`
                     );
                     const uniqueDates = [
                         ...new Set(response.data.map((report) => report.report_date)),
@@ -38,8 +35,8 @@ const useComparisonReportData = (selectedComputer, selectedNewDate, selectedOldD
         const getNewReportNumbers = async () => {
             if (selectedNewDate) {
                 try {
-                    const response = await axios.get(
-                        `${url}/api/admin/getReportsByComputer?computer_identifier=${selectedComputer}&report_date=${selectedNewDate}`
+                    const response = await api().get(
+                        `/api/admin/getReportsByComputer?computer_identifier=${selectedComputer}&report_date=${selectedNewDate}`
                     );
                     setNewReportNumberOptions(response.data.map((report) => report.report_number));
                 } catch (error) {
@@ -57,8 +54,8 @@ const useComparisonReportData = (selectedComputer, selectedNewDate, selectedOldD
         const getOldReportNumbers = async () => {
             if (selectedOldDate) {
                 try {
-                    const response = await axios.get(
-                        `${url}/api/admin/getReportsByComputer?computer_identifier=${selectedComputer}&report_date=${selectedOldDate}`
+                    const response = await api().get(
+                        `/api/admin/getReportsByComputer?computer_identifier=${selectedComputer}&report_date=${selectedOldDate}`
                     );
                     setOldReportNumberOptions(response.data.map((report) => report.report_number));
                 } catch (error) {

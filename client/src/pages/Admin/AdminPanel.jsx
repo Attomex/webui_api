@@ -1,7 +1,6 @@
-import React, { useEffect } from "react";
+import React from "react";
 import "./scss/style.scss";
 
-import Main_admin from "./pages/Main_Admin";
 import { Route, Routes, Navigate } from "react-router-dom";
 
 import Comparison from "./pages/Comparison";
@@ -9,87 +8,67 @@ import Comparison from "./pages/Comparison";
 import ViewReports from "./pages/ViewReports";
 import Uploading from "./pages/Uploading";
 import DownloadReport from "./pages/DownloadReport";
+import MainAdmin from "./pages/MainAdmin";
 
 import VulnerabilitiesPage from "./shared/VulnerabilitiesPage/VulnerabilitiesPage";
 
 import AdminLayout from "./layout/adminLayout";
+import ProtectedRoute from "./provider/ProtectedRoute";
+import Search from "./pages/Search";
+import CreateAdmin from "./pages/CreateAdmin";
 // import LoginPage from "./pages/LoginPage";
 
 const AdminPanel = () => {
-  return (
-    <>
-      <Routes>
+    return (
         <>
-          <Route path="/*" element={<Navigate to="/admin" />} />
-
-          {/* <Route path="/login" element={<LoginPage />} /> */}
-
-          <Route
-            path="/"
-            element={
-              <AdminLayout>
-                <Main_admin />
-              </AdminLayout>
-            }
-          />
-
-          <Route
-            path="/comparison"
-            element={
-              <AdminLayout>
-                <Comparison />
-              </AdminLayout>
-            }
-          ></Route>
-
-          {/* <Route
-            path="/createadmin"
-            element={
-                <AdminLayout>
-                  <CreateAdmin />
-                </AdminLayout>
-            }
-          /> */}
-
-          <Route
-            path="/view"
-            element={
-              <AdminLayout>
-                <ViewReports />
-              </AdminLayout>
-            }
-          ></Route>
-
-          <Route
-            path="/upload"
-            element={
-              <AdminLayout>
-                <Uploading />
-              </AdminLayout>
-            }
-          ></Route>
-
-          <Route
-            path="/download"
-            element={
-              <AdminLayout>
-                <DownloadReport />
-              </AdminLayout>
-            }
-          ></Route>
-
-          <Route
-            path="/view/vulnerabilities"
-            element={
-              <AdminLayout>
-                <VulnerabilitiesPage />
-              </AdminLayout>
-            }
-          ></Route>
+            <Routes>
+                <Route
+                    path="/*"
+                    element={
+                        <ProtectedRoute>
+                            <AdminLayout>
+                                <Routes>
+                                    <Route path="/" element={<MainAdmin />} />
+                                    <Route
+                                        path="/comparison"
+                                        element={<Comparison />}
+                                    />
+                                    <Route
+                                        path="/view"
+                                        element={<ViewReports />}
+                                    />
+                                    <Route
+                                        path="/upload"
+                                        element={<Uploading />}
+                                    />
+                                    <Route
+                                        path="/download"
+                                        element={<DownloadReport />}
+                                    />
+                                    <Route
+                                        path="/view/vulnerabilities"
+                                        element={<VulnerabilitiesPage />}
+                                    />
+                                    <Route
+                                        path="/*"
+                                        element={<Navigate to="/admin" />}
+                                    />
+                                    <Route
+                                        path="/search"
+                                        element={<Search />}
+                                    />
+                                    <Route
+                                        path="/createAdmin"
+                                        element={<CreateAdmin />}
+                                    />
+                                </Routes>
+                            </AdminLayout>
+                        </ProtectedRoute>
+                    }
+                />
+            </Routes>
         </>
-      </Routes>
-    </>
-  );
+    );
 };
 
 export default AdminPanel;

@@ -1,59 +1,45 @@
-import { useState, useEffect } from "react";
-import "../scss/style.scss";
-import { Button, Table } from "react-bootstrap";
-
-// import { Head, useForm } from "@inertiajs/react";
-import InputError from "@/Components/InputError";
-import InputLabel from "@/Components/InputLabel";
-import PrimaryButton from "@/Components/PrimaryButton";
-import TextInput from "@/Components/TextInput";
-
+import React, { useState, useEffect } from "react";
+import { Form, Input, Button, Table } from "antd";
+import api from "../../../utils/api";
+import showErrorNotification from "../shared/Notification/Notification";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
 
 const CreateAdmin = () => {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        name: "",
-        email: "",
-        password: "",
-        password_confirmation: "",
-    });
-
+    const [form] = Form.useForm();
     const [users, setUsers] = useState([]);
-
-    useEffect(() => {
-        return () => {
-            reset("password", "password_confirmation");
-        };
-    }, []);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const getUsers = async () => {
-            await axios
-                .get("/admin/createadmin/getUsers")
-                .then((response) => {
-                    setUsers(response.data);
-                })
-                .catch((error) => {
-                    console.error("Error loading users", error);
-                });
+            try {
+                const response = await api().get("/api/admin/createadmin");
+                setUsers(response.data);
+            } catch (error) {
+                // console.error("Error loading users", error);
+                showErrorNotification("Ошибка при загрузке пользователей.");
+            }
         };
-
         getUsers();
     }, []);
 
-    const submit = (e) => {
-        e.preventDefault();
-        post(route("register"), {
-            onSuccess: () => {
-                // Обработка успешного создания пользователя
-                alert("Адмнистратор успешно добавлен!");
-                window.location.reload();
-            },
-        });
+    const onFinish = async (values) => {
+        setLoading(true);
+        try {
+            await api().post("/api/admin/createadmin", values);
+            alert("Администратор успешно создан.");
+            form.resetFields();
+            window.location.reload();
+        } catch (error) {
+            // console.error("Error creating admin", error);
+            showErrorNotification("Ошибка при создании администратора.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleDelete = (userId) => {
+        console.log(userId);
         confirmAlert({
             title: "Подтверждение удаления",
             message: "Вы уверены, что хотите удалить этого администратора?",
@@ -61,8 +47,8 @@ const CreateAdmin = () => {
                 {
                     label: "Да",
                     onClick: async () => {
-                        await axios
-                            .delete(`/admin/createadmin/${userId}`)
+                        await api()
+                            .delete(`/api/admin/deleteadmin/${userId}`)
                             .then((response) => {
                                 alert(response.data.message);
                             })
@@ -80,155 +66,151 @@ const CreateAdmin = () => {
         });
     };
 
+    const columns = [
+        {
+            title: "Имя",
+            dataIndex: "name",
+            key: "name",
+        },
+        {
+            title: "Почта",
+            dataIndex: "email",
+            key: "email",
+        },
+        {
+            title: "Роль",
+            dataIndex: "role",
+            key: "role",
+        },
+        {
+            title: "Возможности",
+            key: "action",
+            render: (_, record) => (
+                <Button
+                    type="primary"
+                    danger
+                    onClick={() => handleDelete(record.id)}
+                >
+                    Удалить
+                </Button>
+            ),
+        },
+    ];
+
     return (
-        <AdminLayout>
-            <Head title="Регистрация администратора" />
-            <div style={{ marginLeft: "10px" }}>
-                <h2>Создание нового администратора</h2>
-                <div style={{ width: "600px" }}>
-                    <form onSubmit={submit}>
-                        <div>
-                            <InputLabel htmlFor="name" value="Имя" />
+        <div style={{ marginLeft: "10px" }}>
+            <h2>Создание нового администратора</h2>
+            <div style={{ width: "600px", border: "1px solid rgb(231, 234, 238)", padding: "14px", backgroundColor: "rgb(243, 244, 247)", borderRadius: "16px" }}>
+                <Form
+                    form={form}
+                    name="create_admin"
+                    onFinish={onFinish}
+                    layout="vertical"
+                    autoComplete="off"
+                    onSubmit={(e) => e.preventDefault()}
+                >
+                    <Form.Item
+                        label="Имя"
+                        name="name"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Пожалуйста, введите имя!",
+                            },
+                        ]}
+                    >
+                        <Input placeholder="Введите имя" />
+                    </Form.Item>
 
-                            <TextInput
-                                id="name"
-                                name="name"
-                                value={data.name}   
-                                className="mt-1 block w-full"
-                                autoComplete="name"
-                                isFocused={true}
-                                onChange={(e) =>
-                                    setData("name", e.target.value)
-                                }
-                                required
-                            />
+                    <Form.Item
+                        label="Почта"
+                        name="email"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Пожалуйста, введите почту!",
+                            },
+                            {
+                                type: "email",
+                                message: "Некорректный формат почты!",
+                            },
+                        ]}
+                    >
+                        <Input placeholder="Введите почту" />
+                    </Form.Item>
 
-                            <InputError
-                                message={errors.name}
-                                className="mt-2"
-                            />
-                        </div>
+                    <Form.Item
+                        label="Пароль"
+                        name="password"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Пожалуйста, введите пароль!",
+                            },
+                            {
+                                min: 8,
+                                message:
+                                    "Пароль должен содержать не менее 8 символов!",
+                            },
+                        ]}
+                    >
+                        <Input.Password placeholder="Введите пароль" />
+                    </Form.Item>
 
-                        <div className="mt-4">
-                            <InputLabel htmlFor="email" value="Почта" />
+                    <Form.Item
+                        label="Подтверждение пароля"
+                        name="password_confirmation"
+                        dependencies={["password"]}
+                        rules={[
+                            {
+                                required: true,
+                                message: "Пожалуйста, подтвердите пароль!",
+                            },
+                            ({ getFieldValue }) => ({
+                                validator(_, value) {
+                                    if (
+                                        !value ||
+                                        getFieldValue("password") === value
+                                    ) {
+                                        return Promise.resolve();
+                                    }
+                                    return Promise.reject(
+                                        new Error("Пароли не совпадают!")
+                                    );
+                                },
+                            }),
+                        ]}
+                    >
+                        <Input.Password placeholder="Подтвердите пароль" />
+                    </Form.Item>
 
-                            <TextInput
-                                id="email"
-                                type="email"
-                                name="email"
-                                value={data.email}
-                                className="mt-1 block w-full"
-                                autoComplete="username"
-                                onChange={(e) =>
-                                    setData("email", e.target.value)
-                                }
-                                required
-                            />
-
-                            <InputError
-                                message={errors.email}
-                                className="mt-2"
-                            />
-                        </div>
-
-                        <div className="mt-4">
-                            <InputLabel htmlFor="password" value="Пароль" />
-
-                            <TextInput
-                                id="password"
-                                type="password"
-                                name="password"
-                                value={data.password}
-                                className="mt-1 block w-full"
-                                autoComplete="new-password"
-                                onChange={(e) =>
-                                    setData("password", e.target.value)
-                                }
-                                required
-                            />
-
-                            <InputError
-                                message={errors.password}
-                                className="mt-2"
-                            />
-                        </div>
-
-                        <div className="mt-4">
-                            <InputLabel
-                                htmlFor="password_confirmation"
-                                value="Подтверждение пароля"
-                            />
-
-                            <TextInput
-                                id="password_confirmation"
-                                type="password"
-                                name="password_confirmation"
-                                value={data.password_confirmation}
-                                className="mt-1 block w-full"
-                                autoComplete="new-password"
-                                onChange={(e) =>
-                                    setData(
-                                        "password_confirmation",
-                                        e.target.value
-                                    )
-                                }
-                                required
-                            />
-
-                            <InputError
-                                message={errors.password_confirmation}
-                                className="mt-2"
-                            />
-                        </div>
-
-                        <div className="flex items-center justify-center mt-4">
-                            <PrimaryButton
-                                className="ms-4"
-                                disabled={processing}
-                            >
-                                Зарегистрировать нового администратора
-                            </PrimaryButton>
-                        </div>
-                    </form>
-                </div>
-                {users.length > 0 && (
-                    <div>
-                        <h1>Список администраторов</h1>
-                        <div style={{ marginRight: "30px" }}>
-                            <Table>
-                                <thead>
-                                    <tr>
-                                        <th>Имя</th>
-                                        <th>Почта</th>
-                                        <th>Роль</th>
-                                        <th>Возможности</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {users.map((user) => (
-                                        <tr key={user.id}>
-                                            <td>{user.name}</td>
-                                            <td>{user.email}</td>
-                                            <td>{user.role}</td>
-                                            <td>
-                                                <Button
-                                                    onClick={() =>
-                                                        handleDelete(user.id)
-                                                    }
-                                                >
-                                                    Удалить
-                                                </Button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </Table>
-                        </div>
-                    </div>
-                )}
+                    <Form.Item>
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            loading={loading}
+                            block
+                        >
+                            Зарегистрировать нового администратора
+                        </Button>
+                    </Form.Item>
+                </Form>
             </div>
-        </AdminLayout>
+
+            {users.length > 0 && (
+                <div>
+                    <h1>Список администраторов</h1>
+                    <Table
+                        dataSource={users}
+                        columns={columns}
+                        rowKey="id"
+                        pagination={false}
+                        style={{ marginTop: "20px" }}
+                    />
+                </div>
+            )}
+        </div>
     );
 };
 
-export default CreateAdmin;
+export default React.memo(CreateAdmin);

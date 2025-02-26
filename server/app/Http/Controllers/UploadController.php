@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Report;
 use App\Models\Computer;
 use App\Models\ReportVulnerability;
+use App\Models\IdentifierCount;
 use DB;
 use Exception;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,14 +32,39 @@ class UploadController extends Controller
             // Создание или получение компьютера
             $computer = Computer::firstOrCreate(['identifier' => $parsedData['computerIdentifier']]);
 
-            // Создание отчёта
+            // Поиск активного отчёта для этого компьютера
+            $previousActiveReport = $computer->reports()
+                ->where('status', 'активный')
+                ->orderBy('report_date', 'desc')
+                ->first();
+
+            // Если есть активный отчёт, деактивируем его и уменьшаем счётчики идентификаторов
+            if ($previousActiveReport) {
+                $previousActiveReport->update(['status' => 'неактивный']);
+
+                // Уменьшаем счётчики идентификаторов из предыдущего отчёта
+                $previousIdentifiers = DB::table('report_vulnerability_identifiers')
+                    ->join('report_vulnerability', 'report_vulnerability_identifiers.report_vulnerability_id', '=', 'report_vulnerability.id')
+                    ->where('report_vulnerability.report_id', $previousActiveReport->id)
+                    ->pluck('identifier_id');
+
+                foreach ($previousIdentifiers as $identifierId) {
+                    $identifierCount = IdentifierCount::where('identifier_id', $identifierId)->first();
+                    if ($identifierCount) {
+                        $identifierCount->decrement('count');
+                    }
+                }
+            }
+
+            // Создание нового отчёта
             $report = $computer->reports()->create([
                 'report_date' => $parsedData['reportDate'],
                 'report_number' => $parsedData['reportNumber'],
                 'total_critical' => $parsedData['totalCritical'],
                 'total_high' => $parsedData['totalHigh'],
                 'total_medium' => $parsedData['totalMedium'],
-                'total_low' => $parsedData['totalLow']
+                'total_low' => $parsedData['totalLow'],
+                'status' => 'активный' // Новый отчёт всегда активный
             ]);
 
             foreach ($parsedData["vulnerabilities"] as $vulnerabilityData) {
@@ -63,10 +89,19 @@ class UploadController extends Controller
                 // Обработка идентификаторов и их связи
                 foreach ($identifierNumbers as $number) {
                     $identifier = Identifier::firstOrCreate(['number' => $number]);
+
+                    // Связь идентификатора с уязвимостью
                     DB::table('report_vulnerability_identifiers')->updateOrInsert([
                         'report_vulnerability_id' => $reportVulnerability->id,
                         'identifier_id' => $identifier->id
                     ]);
+
+                    // Обновление счётчика идентификаторов
+                    $identifierCount = IdentifierCount::firstOrCreate(
+                        ['identifier_id' => $identifier->id],
+                        ['count' => 0]
+                    );
+                    $identifierCount->increment('count');
                 }
 
                 // Обработка файлов и их связи
@@ -82,9 +117,9 @@ class UploadController extends Controller
             }
 
             // Сохранение исходного JSON в файл
-            $jsonString = json_encode($parsedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-            $filePath = storage_path('\\app\\reports\\' . uniqid() . '.json');
-            file_put_contents($filePath, $jsonString);
+            // $jsonString = json_encode($parsedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            // $filePath = storage_path('\\app\\reports\\' . uniqid() . '.json');
+            // file_put_contents($filePath, $jsonString);
 
             DB::commit();
 

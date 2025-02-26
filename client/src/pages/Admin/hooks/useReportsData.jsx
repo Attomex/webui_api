@@ -1,9 +1,6 @@
 // useReportsData.js
 import { useEffect, useState } from "react";
-import axios from "axios";
-
-
-const url = process.env.REACT_APP_API_URL;
+import api from "../../../utils/api";
 
 // Хук для загрузки идентификаторов компьютеров
 export const useComputerOptions = () => {
@@ -12,7 +9,7 @@ export const useComputerOptions = () => {
     useEffect(() => {
         const loadComputerOptions = async () => {
             try {
-                const response = await axios.get(`${url}/api/admin/getComputersIdentifiers`);
+                const response = await api().get('/api/admin/getComputersIdentifiers');
                 setComputerOptions(response.data);
             } catch (error) {
                 console.error("Error loading computers", error);
@@ -32,7 +29,7 @@ export const useDateOptions = (selectedComputer) => {
         const loadUniqueDates = async () => {
             if (selectedComputer) {
                 try {
-                    const response = await axios.get(`${url}/api/admin/getReportsByComputer?computer_identifier=${selectedComputer}`);
+                    const response = await api().get(`/api/admin/getReportsByComputer?computer_identifier=${selectedComputer}`);
                     const uniqueDates = [...new Set(response.data.map(report => report.report_date))];
                     setDateOptions(uniqueDates);
                 } catch (error) {
@@ -56,7 +53,7 @@ export const useReportNumberOptions = (selectedComputer, selectedDate) => {
         const loadReportNumbers = async () => {
             if (selectedDate) {
                 try {
-                    const response = await axios.get(`${url}/api/admin/getReportsByComputer?computer_identifier=${selectedComputer}&report_date=${selectedDate}`);
+                    const response = await api().get(`/api/admin/getReportsByComputer?computer_identifier=${selectedComputer}&report_date=${selectedDate}`);
                     setReportNumberOptions(response.data.map(report => report.report_number));
                 } catch (error) {
                     console.error("Error loading report numbers", error);

@@ -2,6 +2,10 @@
     display: flex;
     justify-content: space-around;
     flex-wrap: wrap;
+    border: 1px solid rgb(231, 234, 238);
+    background-color: rgb(243, 244, 247); 
+    border-radius: 16px;
+    height: max-content;
 }
 
 .chart__wrapper {

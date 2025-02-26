@@ -1,28 +1,26 @@
 import React, { useState, useEffect} from 'react';
-import axios from 'axios';
 import NavBar from './components/UI/NavBar/NavBar';
 import ButtonLoadMain from './components/UI/Buttons/ButtonLoadMain';
 import Loaded from './components/UI/Loaded/Loaded';
 import LoadingData from './components/UI/LoadingData/LoadingData';
+import api from "../../utils/api"
 
 const Main = () => {
-  
-  const url = process.env.REACT_APP_API_URL;
-
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // const [error, setError] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${url}/api/cards`);
+        const response = await api().get('/api/cards');
         setData(response.data);
         setLoading(false);
 
       } catch (err) {
-        setError(err);
+        // setError(err);
+        console.log("...")
       } finally {
         setLoading(false);
       }

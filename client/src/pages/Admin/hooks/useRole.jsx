@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../../utils/api";
 
 export function useRole() {
     const [role, setRole] = useState(null);
 
     useEffect(() => {
-        axios
+        api()
             .get("/admin/getRole")
             .then((response) => {
                 setRole(response.data.role);

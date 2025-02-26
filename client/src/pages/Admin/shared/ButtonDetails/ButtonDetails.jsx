@@ -3,7 +3,7 @@ import { CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter, CButton, C
 
 const ButtonDetails = ({ visible, onClose, selectedVulnerability }) => {
     return (
-        <CModal fullscreen size='xl' scrollable visible={visible} onClose={onClose} >
+        <CModal fullscreen scrollable visible={visible} onClose={onClose}>
             <CModalHeader onClose={onClose}>
                 <CModalTitle>Подробная информация</CModalTitle>
             </CModalHeader>

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('total_high');
             $table->integer('total_medium');
             $table->integer('total_low');
+            $table->string('status');
             $table->foreignId('computer_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });

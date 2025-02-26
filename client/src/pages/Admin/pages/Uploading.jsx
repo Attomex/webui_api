@@ -1,15 +1,15 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState, useEffect } from "react";
 import { Button } from "react-bootstrap";
 import "../scss/style.scss";
 import { parseHTML } from "../scripts/parseHTML";
 import c from "./pagesModules/Uploading.module.css";
 import UploadingOptions from "../components/UploadingOptions";
+import api from "../../../utils/api";
 
 import { useComputerOptions } from "../hooks/useReportsData";
 
 import LoadingSpinner from "../shared/LoadingSpinner/LoadingSpinner";
-import MessageAlert from "../shared/MessageAlert/MessageAlert";
+import { showSuccessNotification, showErrorNotification } from "../shared/Notification/Notification";
 
 const Uploading = () => {
   const url = process.env.REACT_APP_API_URL;
@@ -28,8 +28,12 @@ const Uploading = () => {
     document.title = "Загрузка отчёта";
   }, []);
 
+  const csrfToken = async () => { await api().get(`${url}/sanctum/csrf-cookie`) };
+
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
+    setError("");
+    setMessage("");
     if (selectedFile) {
       const fileExtension = selectedFile.name.split(".").pop().toLowerCase();
 
@@ -46,6 +50,8 @@ const Uploading = () => {
 
   const handleIdentifierChange = (event) => {
     setComputerIdentifier(event.target.value);
+    setError("");
+    setMessage("");
   };
 
   const handleSubmit = (event) => {
@@ -69,13 +75,9 @@ const Uploading = () => {
         setLoading(true);
         setLoadingText("Отчёт загружается на сервер...");
 
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await csrfToken();
 
-        const response = await axios.post(`${url}/api/admin/upload`, parsedData, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await api().post('/api/admin/upload', parsedData);
 
         setMessage(response.data.message);
         setError("");
@@ -166,10 +168,10 @@ const Uploading = () => {
         </Button>
       </form>
       {loading && <LoadingSpinner text={loadingText} />}
-      {message && <MessageAlert message={message} variant={"success"} />}
-      {error && <MessageAlert message={error} variant={"danger"} />}
+      {message && showSuccessNotification(message)}
+      {error && showErrorNotification(error)}
     </div>
   );
 };
 
-export default Uploading;
+export default React.memo(Uploading);

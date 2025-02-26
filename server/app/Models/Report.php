@@ -9,7 +9,7 @@ class Report extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['report_date', 'report_number', 'total_critical', 'total_high', 'total_medium', 'total_low', 'computer_id'];
+    protected $fillable = ['report_date', 'report_number', 'total_critical', 'total_high', 'total_medium', 'total_low', 'computer_id', 'status'];
 
     protected $hidden = ['created_at', 'updated_at'];
 

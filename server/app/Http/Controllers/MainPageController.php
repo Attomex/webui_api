@@ -15,7 +15,7 @@ class MainPageController extends Controller
 
             $reports = Report::with(['computer' => function ($query) {
                 $query->select('id', 'identifier'); // Укажите нужные поля из модели Computer
-            }])->get(['computer_id', 'report_date', 'total_critical', 'total_high', 'total_medium', 'total_low']);
+            }])->where('status', 'активный')->get(['computer_id', 'report_date', 'total_critical', 'total_high', 'total_medium', 'total_low']);
 
             // $reports->each(function ($report) {
             //     $report->criticalErrors = $report->total_critical;

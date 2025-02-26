@@ -28,7 +28,7 @@ class AddSuperAdmin extends Command
     public function handle()
     {
         // Проверяем, существует ли уже супер-админ
-        if (User::where('role', 'Super Admin')->exists()) {
+        if (User::where('role', 'SuperAdmin')->exists()) {
             $this->error('Super admin already exists!');
             return Command::FAILURE;
         }

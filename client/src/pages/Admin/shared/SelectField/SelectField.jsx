@@ -1,4 +1,5 @@
 import React from 'react';
+import Form from 'react-bootstrap/Form';
 import c from '../../pages/pagesModules/ViewReports.module.css';
 import '../../pages/pagesModules/ViewReports.css';
 
@@ -10,7 +11,7 @@ const SelectField = ({ label, option, id, value, onChange, options, required, di
             </label>
         </td>
         <td>
-            <select
+            <Form.Select
                 className={c.select__field}
                 id={id}
                 value={value}
@@ -36,7 +37,7 @@ const SelectField = ({ label, option, id, value, onChange, options, required, di
                         {option.identifier || option}
                     </option>
                 ))}
-            </select>
+            </Form.Select>
         </td>
     </tr>
 );

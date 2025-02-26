@@ -62,21 +62,4 @@ class ReportController extends Controller
 
         return response()->json($reports);
     }
-
-    public function getUsers()
-    {
-        $users = User::where('role', '=', 'Admin')->get();
-
-        return response()->json($users);
-    }
-
-    public function deleteAdminUser($id)
-    {
-        $user = User::findOrFail($id);
-
-        if ($user) {
-            $user->delete();
-            return response()->json(['message' => 'Администратор успешно удален.'], 200);
-        }
-    }
 }
