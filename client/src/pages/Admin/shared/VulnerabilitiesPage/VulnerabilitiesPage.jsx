@@ -36,6 +36,7 @@ const VulnerabilitiesPage = () => {
     const searchInput = useRef(null);
     const [searchText, setSearchText] = useState("");
     const [searchedColumn, setSearchedColumn] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
 
     const openModal = (vulnerability) => {
         setSelectedVulnerability(vulnerability);
@@ -179,6 +180,15 @@ const VulnerabilitiesPage = () => {
 
     const columns = [
         {
+            title: "Номер",
+            key: "index",
+            width: "5%",
+            render: (text, record, index) => {
+                const rowNumber = (currentPage - 1) * 15 + index + 1;
+                return rowNumber;
+            },
+        },
+        {
             title: "Идентификатор",
             dataIndex: "identifiers",
             key: "identifiers",
@@ -188,6 +198,7 @@ const VulnerabilitiesPage = () => {
             title: "Уровень ошибки",
             dataIndex: "error_level",
             key: "error_level",
+            width: "25%",
             filters: [
                 { text: "Критический", value: "Критический" },
                 { text: "Высокий", value: "Высокий" },
@@ -220,9 +231,14 @@ const VulnerabilitiesPage = () => {
         {
             title: "Действия",
             key: "actions",
+            width: "20%",
             render: (_, record) => (
                 <Button
                     type="primary"
+                    style={{
+                        display: "block", // Делаем кнопку блочным элементом
+                        margin: "0 auto", // Центрируем её в ячейке
+                    }}  
                     icon={<EyeOutlined />}
                     onClick={() => {
                         // console.log(record);
@@ -257,7 +273,8 @@ const VulnerabilitiesPage = () => {
                             components: {
                                 Table: {
                                     cellFontSize: "16px",
-                                    colorBgContainer: "rgb(243, 244, 247)"
+                                    colorBgContainer: "rgb(243, 244, 247)",
+                                    borderColor: "rgb(204, 204, 204)",
                                 },
                             },
                         }}
@@ -275,7 +292,16 @@ const VulnerabilitiesPage = () => {
                             pagination={{
                                 defaultPageSize: 15,
                                 showSizeChanger: true,
+                                position: ["topRight", "bottomRight"],
                                 pageSizeOptions: ["10", "15", "20", "50"],
+                                locale: {
+                                    items_per_page: "/ на странице",
+                                },
+                                onChange: (page) => {
+                                    // document.body.scrollTop = 0; // For Safari
+                                    setCurrentPage((prev) => page);
+                                    document.documentElement.scrollTop = 0;
+                                },
                             }}
                         />
                     </ConfigProvider>

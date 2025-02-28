@@ -16,13 +16,18 @@ const Loaded = ({ data }) => {
     return acc;
   }, {});
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+  }
+
   return (
     <>
       <div>
         {Object.keys(groupedData).map((date) => (
           <div key={date}>
             <hr style={{ marginTop: "10px" }} className={c.hr_date} />
-            <h2 style={{ textAlign: "center" }}>{date}</h2>
+            <h2 style={{ margin: "7px 0px", textAlign: "center" }}>{formatDate(date)}</h2>
             <hr className={c.hr_date} />
             <div className={c.LoadedXML}>
               {groupedData[date].map((item, index) => (

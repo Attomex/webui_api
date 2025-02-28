@@ -32,7 +32,7 @@ const AppSidebar = () => {
     return (
         <CSidebar className="border-end" colorScheme="dark" position="fixed">
             <CSidebarHeader className="border-bottom">
-                <CSidebarBrand Link="/">
+                <CSidebarBrand to="/">
                     <img
                         src="/images/png-clipart-logo-graphic-designer-logos-company-logo.png"
                         alt="Logo"

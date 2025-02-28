@@ -1,9 +1,6 @@
 import React from "react";
-import Button from "react-bootstrap/Button";
 import "bootstrap/dist/css/bootstrap.min.css";
-import c from "./ButtonLoadMain.module.css";
 import { Link } from "react-router-dom";
-// import { Head, Link } from "@inertiajs/react";
 
 const ButtonLoadMain = () => {
     return (

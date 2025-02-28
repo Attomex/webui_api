@@ -57,7 +57,7 @@ const AppHeader = () => {
                         <CNavLink
                             className={c.head_link}
                             to = '/'
-                            style={{ cursor: "pointer" }}
+                            // style={{ cursor: "pointer", color: "black" }}
                             as={NavLink}
                         >
                             Вернуться на сайт
@@ -65,7 +65,7 @@ const AppHeader = () => {
                         <CNavLink
                             className={c.head_link}
                             to = '/admin'
-                            style={{ cursor: "pointer" }}
+                            // style={{ cursor: "pointer" }}
                             as={NavLink}
                         >
                             Главная

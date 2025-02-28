@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Table, Input, Button, Space, ConfigProvider } from "antd";
+import { Table, Input, Button, Space, ConfigProvider, Modal } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import "antd/dist/reset.css";
@@ -14,6 +14,9 @@ const FileTable = ({
 }) => {
     const [searchText, setSearchText] = useState("");
     const [searchedColumn, setSearchedColumn] = useState("");
+    const [isModalVisible, setIsModalVisible] = useState(false); // Состояние для модального окна
+    const [selectedFileLink, setSelectedFileLink] = useState(""); // Состояние для хранения выбранной ссылки
+    const [currentPage, setCurrentPage] = useState(1); // Состояние для текущей страницы
     const searchInput = useRef(null);
 
     // Обработчик для поиска
@@ -27,6 +30,31 @@ const FileTable = ({
     const handleReset = (clearFilters) => {
         clearFilters();
         setSearchText("");
+    };
+
+    // Функция для обрезки текста с учетом подсветки
+    const truncateTextWithHighlight = (text, searchWords, maxLength = 100) => {
+        if (text.length <= maxLength) return text;
+
+        const firstPart = text.slice(0, 40); // Первые 40 символов
+        const lastPart = text.slice(-60); // Последние 60 символов
+
+        // Ищем совпадения в обрезанном тексте
+        const matches = searchWords.flatMap((word) => {
+            const regex = new RegExp(word, "gi");
+            return [...text.matchAll(regex)].map((match) => match.index);
+        });
+
+        // Если есть совпадения, показываем текст вокруг них
+        if (matches.length > 0) {
+            const matchIndex = matches[0]; // Первое совпадение
+            const start = Math.max(matchIndex - 30, 0); // 30 символов до совпадения
+            const end = Math.min(matchIndex + 30, text.length); // 30 символов после совпадения
+            return `${firstPart}...${text.slice(start, end)}...${lastPart}`;
+        }
+
+        // Если совпадений нет, возвращаем стандартный обрезанный текст
+        return `${firstPart}...${lastPart}`;
     };
 
     // Функция для получения свойств столбца с поиском
@@ -122,24 +150,45 @@ const FileTable = ({
                 .toString()
                 .toLowerCase()
                 .includes(value.toLowerCase()),
-        render: (text) =>
-            searchedColumn === dataIndex ? (
-                <Highlighter
-                    highlightStyle={{
-                        backgroundColor: "#ffc069",
-                        padding: 0,
+        render: (text) => {
+            const truncatedText = truncateTextWithHighlight(text, [searchText]);
+            return (
+                <span
+                    style={{
+                        cursor: "pointer",
+                        color: "rgb(64, 150, 255)",
                     }}
-                    searchWords={[searchText]}
-                    autoEscape
-                    textToHighlight={text ? text.toString() : ""}
-                />
-            ) : (
-                text
-            ),
+                    onClick={() => {
+                        setSelectedFileLink(text); // Устанавливаем выбранную ссылку
+                        setIsModalVisible(true); // Открываем модальное окно
+                    }}
+                >
+                    <Highlighter
+                        highlightStyle={{
+                            backgroundColor: "#ffc069",
+                            padding: 0,
+                        }}
+                        searchWords={[searchText]}
+                        autoEscape
+                        textToHighlight={truncatedText}
+                    />
+                </span>
+            );
+        },
     });
 
     // Колонки для таблицы
     const columns = [
+        {
+            title: "Номер",
+            key: "index",
+            width: "5%",
+            render: (text, record, index) => {
+                // Рассчитываем номер строки с учетом текущей страницы
+                const rowNumber = (currentPage - 1) * 15 + index + 1; // 15 - дефолтный pageSize
+                return rowNumber;
+            },
+        },
         {
             title: "Ссылка на файл",
             dataIndex: "file_path",
@@ -149,8 +198,13 @@ const FileTable = ({
         {
             title: "Действия",
             key: "actions",
+            width: "20%",
             render: (_, record) => (
                 <Button
+                    style={{
+                        display: "block", // Делаем кнопку блочным элементом
+                        margin: "0 auto", // Центрируем её в ячейке
+                    }}  
                     type="primary"
                     icon={<SearchOutlined />}
                     onClick={() => handleViewVulnerabilities(record.id)}
@@ -175,9 +229,20 @@ const FileTable = ({
 
     return (
         <div style={{ marginLeft: "10px" }}>
-            <p>Идентификатор компьютера: <span style={{ fontWeight: "bold" }}>{selectedComputer}</span></p>
-            <p>Дата отчёта: <span style={{ fontWeight: "bold" }}>{selectedDate}</span></p>
-            <p>Номер отчёта: <span style={{ fontWeight: "bold" }}>{selectedReportNumber}</span></p>
+            <p>
+                Идентификатор компьютера:{" "}
+                <span style={{ fontWeight: "bold" }}>{selectedComputer}</span>
+            </p>
+            <p>
+                Дата отчёта:{" "}
+                <span style={{ fontWeight: "bold" }}>{selectedDate}</span>
+            </p>
+            <p>
+                Номер отчёта:{" "}
+                <span style={{ fontWeight: "bold" }}>
+                    {selectedReportNumber}
+                </span>
+            </p>
             <h2>Файлы с уязвимостями (было найдено {filesCount} файлов)</h2>
             {/* Таблица Ant Design */}
             <ConfigProvider
@@ -185,7 +250,8 @@ const FileTable = ({
                     components: {
                         Table: {
                             cellFontSize: "16px",
-                            colorBgContainer: "rgb(243, 244, 247)"
+                            colorBgContainer: "rgb(243, 244, 247)",
+                            borderColor: "rgb(204, 204, 204)",
                         },
                     },
                 }}
@@ -197,7 +263,16 @@ const FileTable = ({
                     pagination={{
                         defaultPageSize: 15,
                         showSizeChanger: true,
+                        position: ["topRight", "bottomRight"],
                         pageSizeOptions: ["10", "15", "20", "50", "100"],
+                        locale: {
+                            items_per_page: "/ на странице",
+                        },
+                        onChange: (page) => {
+                            // document.body.scrollTop = 0; // For Safari
+                            setCurrentPage((prev) => page);
+                            document.documentElement.scrollTop = 0;
+                        },
                     }}
                     rowKey="id"
                     style={{
@@ -207,6 +282,24 @@ const FileTable = ({
                     }}
                 />
             </ConfigProvider>
+
+            {/* Модальное окно для отображения полной ссылки */}
+            <Modal
+                title="Ссылка на файл"
+                open={isModalVisible}
+                width={800}
+                onCancel={() => setIsModalVisible(false)}
+                footer={[
+                    <Button
+                        key="close"
+                        onClick={() => setIsModalVisible(false)}
+                    >
+                        Закрыть
+                    </Button>,
+                ]}
+            >
+                <p style={{ wordWrap: "break-word" }}>{selectedFileLink}</p>
+            </Modal>
         </div>
     );
 };

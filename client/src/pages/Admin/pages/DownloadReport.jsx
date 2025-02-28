@@ -185,7 +185,7 @@ const DownloadReport = () => {
                         <SelectField
                             label="Дата отчёта"
                             option="дату отчёта"
-                            id="report_number"
+                            id="report_date"
                             value={selectedDate}
                             onChange={handleDateChange}
                             options={dateOptions}

@@ -18,10 +18,6 @@ const UploadingOptions = ({
         setterComputerIdentifier("");
     };
 
-    function clearSelect() {
-        setterComputerIdentifier("");
-    }
-
     return (
         <>
             <td>

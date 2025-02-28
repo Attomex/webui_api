@@ -175,7 +175,7 @@ const Comparison = () => {
                         <SelectField
                             label="Дата нового отчёта"
                             option="дату нового отчёта"
-                            id="report_date"
+                            id="report_date_1"
                             value={selectedNewDate}
                             onChange={handleNewDateChange}
                             options={newDateOptions}
@@ -185,7 +185,7 @@ const Comparison = () => {
                         <SelectField
                             label="Номер нового отчёта"
                             option="номер нового отчёта"
-                            id="report_number"
+                            id="report_number_1"
                             value={selectedNewReportNumber}
                             onChange={handleNewReportNumberChange}
                             options={newReportNumberOptions}
@@ -197,7 +197,7 @@ const Comparison = () => {
                         <SelectField
                             label="Дата прошлого отчёта"
                             option="дату прошлого отчёта"
-                            id="report_date"
+                            id="report_date_2"
                             value={selectedOldDate}
                             onChange={handleOldDateChange}
                             options={selectedNewDate}
@@ -208,7 +208,7 @@ const Comparison = () => {
                         <SelectField
                             label="Номер прошлого отчёта"
                             option="номер прошлого отчёта"
-                            id="report_number"
+                            id="report_number_2"
                             value={selectedOldReportNumber}
                             onChange={handleOldReportNumberChange}
                             options={selectedNewReportNumber}

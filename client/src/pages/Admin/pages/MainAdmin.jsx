@@ -31,8 +31,8 @@ const MainAdmin = () => {
             <h2>Графики</h2>
             <div className={c.app__container}>
                 <div className={c.chart__wrapper}>
-                        <TopIdentifiersCount />
-                    </div>
+                    <TopIdentifiersCount />
+                </div>
                 <div className={c.chart__wrapper}>
                     <TotalComputersReports />
                 </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { CModal, CModalBody, CModalHeader, CModalTitle, CModalFooter, CButton } from '@coreui/react';
 
 const DownloadModal = ({ visible, onClose, onDownload, selectedErrorLevels, setSelectedErrorLevels, selectedColumns, setSelectedColumns }) => {
