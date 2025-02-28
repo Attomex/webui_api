@@ -56,7 +56,7 @@ Route::prefix('admin')->middleware('jwt.auth')->group(function () {
 
 Route::prefix('auth')->group(function () {
     Route::middleware('jwt.auth')->group(function () {
-        Route::get('/check', [AuthController::class, 'checkAuth']);
+        // Route::get('/check', [AuthController::class, 'checkAuth']);
         Route::get('/logout', [AuthController::class, 'logout']);
     });
     Route::post('/login', [AuthController::class, 'login']);
