@@ -14,7 +14,11 @@ const LogDetailsModal = ({
             render: (text) => {
                 const firstLetter = text.charAt(0).toUpperCase();
                 const restOfText = text.slice(1);
-                return <strong style={{ fontSize: "16px" }}>{`${firstLetter}${restOfText}`}</strong>;
+                return (
+                    <strong
+                        style={{ fontSize: "16px" }}
+                    >{`${firstLetter}${restOfText}`}</strong>
+                );
                 // <strong>{text}</strong>
             },
         },
@@ -24,9 +28,11 @@ const LogDetailsModal = ({
             key: "value",
             render: (value) =>
                 typeof value === "object" ? (
-                    <pre style={{ fontSize: "16px" }}>{JSON.stringify(value, null, 2)}</pre>
+                    <pre style={{ fontSize: "16px" }}>
+                        {JSON.stringify(value, null, 2)}
+                    </pre>
                 ) : (
-                    <div style={{ fontSize: "16px" }}>{value}</div> 
+                    <div style={{ fontSize: "16px" }}>{value}</div>
                 ),
         },
     ];
@@ -40,8 +46,19 @@ const LogDetailsModal = ({
 
     return (
         <Modal
-            title="Детали лога"
+            title={
+                <div
+                    style={{
+                        textAlign: "center",
+                        fontSize: "20px",
+                        fontWeight: "bold",
+                    }}
+                >
+                    Детали лога
+                </div>
+            }
             open={isModalVisible}
+            closeIcon={false}
             onCancel={() => setIsModalVisible(false)}
             footer={[
                 <Button
@@ -72,7 +89,6 @@ const LogDetailsModal = ({
                         pagination={false} // Отключаем пагинацию
                         bordered
                         size="small"
-
                     />
                 </ConfigProvider>
             )}
