@@ -1,0 +1,199 @@
+<?php
+
+namespace App\Services;
+
+use Carbon\Carbon;
+
+class LoggerService
+{
+    protected $logDirectory;
+    protected $logFile;
+    protected $logLifetimeDays = 30;
+
+    public function __construct()
+    {
+        $this->logDirectory = storage_path('logs/activity');
+        $this->ensureLogDirectoryExists();
+        $this->logFile = $this->getCurrentLogFile();
+    }
+
+    protected function ensureLogDirectoryExists()
+    {
+        if (!file_exists($this->logDirectory)) {
+            mkdir($this->logDirectory, 0755, true);
+        }
+    }
+
+    protected function getCurrentLogFile()
+    {
+        $files = glob($this->logDirectory . '/log_*.log');
+
+        if (!empty($files)) {
+            $latestFile = end($files);
+            $fileName = basename($latestFile);
+
+            // Извлекаем даты из имени файла
+            preg_match('/log_(\d{2}-\d{2}-\d{4})_to_(\d{2}-\d{2}-\d{4})\.log/', $fileName, $matches);
+
+            if (count($matches) === 3) {
+                $endDate = Carbon::createFromFormat('d-m-Y', $matches[2]);
+
+                // Если срок жизни файла истёк, создаем новый
+                if ($endDate->isPast()) {
+                    return $this->createNewLogFile();
+                }
+
+                return $latestFile;
+            }
+        }
+
+        // Если файлов нет или формат не совпадает, создаем новый
+        return $this->createNewLogFile();
+    }
+
+    protected function createNewLogFile()
+    {
+        $startDate = Carbon::now()->format('d-m-Y');
+        $endDate = Carbon::now()->addDays($this->logLifetimeDays)->format('d-m-Y');
+        $fileName = "log_{$startDate}_to_{$endDate}.log";
+        $filePath = $this->logDirectory . '/' . $fileName;
+
+        touch($filePath);
+
+        return $filePath;
+    }
+
+    public function log($action, $user_email, $data = [], $level = 'info')
+    {
+        $levelTranslations = [
+            // 'emergency' => 'Аварийный',
+            // 'alert' => 'Тревога',
+            // 'critical' => 'Критический',
+            'error' => 'Ошибка',
+            'warning' => 'Предупреждение',
+            // 'notice' => 'Уведомление',
+            'info' => 'Информация',
+            // 'debug' => 'Отладка',
+        ];
+
+        $logEntry = [
+            'level' => $levelTranslations[$level] ?? $level,
+            'time' => now()->timezone('Europe/Moscow')->format('d-m-Y H:i:s'),
+            'user_email' => $user_email,
+            'action' => $action,
+            'data' => $data,
+        ];
+
+        $logEntryJson = json_encode($logEntry, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+        file_put_contents($this->logFile, $logEntryJson, FILE_APPEND);
+    }
+
+    public function getAvailableDateRanges()
+    {
+        $files = glob($this->logDirectory . '/log_*.log');
+        // $dateRanges = [];
+
+        $minStartDate = null;
+        $maxEndDate = null;
+
+        foreach ($files as $file) {
+            $fileName = basename($file);
+            preg_match('/log_(\d{2}-\d{2}-\d{4})_to_(\d{2}-\d{2}-\d{4})\.log/', $fileName, $matches);
+
+            if (count($matches) === 3) {
+                $startDate = $matches[1];
+                $endDate = $matches[2];
+
+                $startDateCarbon = Carbon::createFromFormat('d-m-Y', $startDate);
+                $endDateCarbon = Carbon::createFromFormat('d-m-Y', $endDate);
+
+                // Находим минимальную start_date
+                if (!$minStartDate || $startDateCarbon->lt($minStartDate)) {
+                    $minStartDate = $startDateCarbon;
+                }
+
+                // Находим максимальную end_date
+                if (!$maxEndDate || $endDateCarbon->gt($maxEndDate)) {
+                    $maxEndDate = $endDateCarbon;
+                }
+
+                // $dateRanges[] = [
+                //     'start_date' => $startDate,
+                //     'end_date' => $endDate,
+                //     'file_name' => $fileName,
+                // ];
+            }
+        }
+
+        // Возвращаем общий диапазон и список файлов
+        return [
+            'overall_start_date' => $minStartDate?->format('d-m-Y'),
+            'overall_end_date' => $maxEndDate?->format('d-m-Y'),
+            // 'date_ranges' => $dateRanges,
+        ];
+    }
+
+    public function getLogsByDateRange($startDate, $endDate)
+    {
+        $logs = [];
+        $files = glob($this->logDirectory . '/log_*.log');
+
+        // Проверяем, что входные даты соответствуют формату
+        if (!preg_match('/^\d{2}-\d{2}-\d{4}$/', $startDate) || !preg_match('/^\d{2}-\d{2}-\d{4}$/', $endDate)) {
+            throw new \InvalidArgumentException("Неверный формат даты. Ожидается формат dd-mm-yyyy.");
+        }
+
+        // Преобразуем входные даты в объекты Carbon
+        $startDateCarbon = Carbon::createFromFormat('d-m-Y', $startDate)->startOfDay(); // Начало дня
+        $endDateCarbon = Carbon::createFromFormat('d-m-Y', $endDate)->endOfDay(); // Конец дня
+
+        foreach ($files as $file) {
+            $fileName = basename($file);
+            // Извлекаем даты из имени файла
+            preg_match('/log_(\d{2}-\d{2}-\d{4})_to_(\d{2}-\d{2}-\d{4})\.log/', $fileName, $matches);
+
+            if (count($matches) === 3) {
+                $fileStartDate = Carbon::createFromFormat('d-m-Y', $matches[1])->startOfDay();
+                $fileEndDate = Carbon::createFromFormat('d-m-Y', $matches[2])->endOfDay();
+
+                // Проверяем, пересекается ли диапазон файла с запрашиваемым диапазоном
+                if ($fileStartDate->lte($endDateCarbon) && $fileEndDate->gte($startDateCarbon)) {
+                    $lines = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                    foreach ($lines as $line) {
+                        $logEntry = json_decode($line, true);
+
+                        // Проверяем, что время лога соответствует формату
+                        if (isset($logEntry['time']) && preg_match('/^\d{2}-\d{2}-\d{4} \d{2}:\d{2}:\d{2}$/', $logEntry['time'])) {
+                            $logTime = Carbon::createFromFormat('d-m-Y H:i:s', $logEntry['time']);
+
+                            // Фильтруем логи по времени, включая границы
+                            if ($logTime->betweenIncluded($startDateCarbon, $endDateCarbon)) {
+                                $logs[] = $logEntry;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $logs;
+    }
+
+    // Метод для удаления старых логов, пока неясно нужон или не нужон
+    // public function deleteOldLogs()
+    // {
+    //     $files = glob($this->logDirectory . '/log_*.log');
+    //     $threshold = Carbon::now()->subMonths(9);
+
+    //     foreach ($files as $file) {
+    //         $fileName = basename($file);
+    //         preg_match('/log_(.*)_to_(.*)\.log/', $fileName, $matches);
+
+    //         $fileEndDate = Carbon::createFromFormat('Y-m-d', $matches[2]);
+
+    //         if ($fileEndDate->lt($threshold)) {
+    //             unlink($file);
+    //         }
+    //     }
+    // }
+}

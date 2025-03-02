@@ -16,6 +16,7 @@ import AdminLayout from "./layout/adminLayout";
 import ProtectedRoute from "./provider/ProtectedRoute";
 import Search from "./pages/Search";
 import CreateAdmin from "./pages/CreateAdmin";
+import ViewLogs from "./pages/ViewLogs";
 // import LoginPage from "./pages/LoginPage";
 
 const AdminPanel = () => {
@@ -60,6 +61,11 @@ const AdminPanel = () => {
                                     <Route
                                         path="/createAdmin"
                                         element={<CreateAdmin />}
+                                    />
+
+                                    <Route
+                                        path="/logs"
+                                        element={<ViewLogs />}
                                     />
                                 </Routes>
                             </AdminLayout>

@@ -1,53 +1,53 @@
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import { NavLink } from "react-router-dom";
 
 import c from "./AppHeaderLinks.module.css";
 
 import {
     CContainer,
-    CDropdown,
-    CDropdownItem,
-    CDropdownMenu,
-    CDropdownToggle,
+    // CDropdown,
+    // CDropdownItem,
+    // CDropdownMenu,
+    // CDropdownToggle,
     CHeader,
     CHeaderNav,
-    CHeaderToggler,
+    // CHeaderToggler,
     CNavLink,
     CNavItem,
-    useColorModes,
+    // useColorModes,
 } from "@coreui/react";
-import CIcon from "@coreui/icons-react";
-import {
-    cilBell,
-    cilContrast,
-    cilEnvelopeOpen,
-    cilList,
-    cilMenu,
-    cilMoon,
-    cilSun,
-} from "@coreui/icons";
+// import CIcon from "@coreui/icons-react";
+// import {
+//     cilBell,
+//     cilContrast,
+//     cilEnvelopeOpen,
+//     cilList,
+//     cilMenu,
+//     cilMoon,
+//     cilSun,
+// } from "@coreui/icons";
 
-import { AppHeaderDropdown } from "./header/index";
+// import { AppHeaderDropdown } from "./header/index";
 import { logOut } from "../../../utils/auth";
 
 import { Button } from "react-bootstrap";
 
 const AppHeader = () => {
     const headerRef = useRef();
-    const { colorMode, setColorMode } = useColorModes(
-        "coreui-free-react-admin-template-theme"
-    );
+    // const { colorMode, setColorMode } = useColorModes(
+    //     "coreui-free-react-admin-template-theme"
+    // );
 
-    useEffect(() => {
-        setColorMode("light");
-        document.addEventListener("scroll", () => {
-            headerRef.current &&
-                headerRef.current.classList.toggle(
-                    "shadow-sm",
-                    document.documentElement.scrollTop > 0
-                );
-        });
-    }, []);
+    // useEffect(() => {
+    //     setColorMode("light");
+    //     document.addEventListener("scroll", () => {
+    //         headerRef.current &&
+    //             headerRef.current.classList.toggle(
+    //                 "shadow-sm",
+    //                 document.documentElement.scrollTop > 0
+    //             );
+    //     });
+    // }, []);
 
     return (
         <CHeader position="sticky" className="mb-4 p-0" ref={headerRef}>
@@ -73,10 +73,10 @@ const AppHeader = () => {
                     </CNavItem>
                 </CHeaderNav>
                 <CHeaderNav>
-                    <li className="nav-item py-1">
+                    {/* <li className="nav-item py-1">
                         <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
-                    </li>
-                    <CDropdown variant="nav-item" placement="bottom-end">
+                    </li> */}
+                    {/* <CDropdown variant="nav-item" placement="bottom-end">
                         <CDropdownToggle caret={false}>
                             {colorMode === "dark" ? (
                                 <CIcon icon={cilMoon} size="lg" />
@@ -130,11 +130,11 @@ const AppHeader = () => {
                                 Auto
                             </CDropdownItem>
                         </CDropdownMenu>
-                    </CDropdown>
+                    </CDropdown> */}
                     <li className="nav-item py-1">
                         <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
                     </li>
-                    <AppHeaderDropdown />
+                    {/* <AppHeaderDropdown /> */}
                     <Button
                         variant="primary"
                         onClick={() => logOut()}

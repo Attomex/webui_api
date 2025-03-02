@@ -14,6 +14,7 @@ const Notification = () => {
       pauseOnFocusLoss
       draggable
       pauseOnHover
+      limit={2}
     />
   );
 };

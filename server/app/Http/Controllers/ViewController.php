@@ -8,6 +8,7 @@ use App\Models\ReportVulnerability;
 use App\Models\File;
 use App\Models\Computer;
 use Symfony\Component\HttpFoundation\Response;
+use App\Services\LoggerService;
 
 class ViewController extends Controller
 {
@@ -76,8 +77,16 @@ class ViewController extends Controller
     //     }
     // }
 
+    protected $loggerService;
+
+    public function __construct(LoggerService $loggerService)
+    {
+        $this->loggerService = $loggerService;
+    }
+
     public function getFiles(Request $request)
     {
+        $user = $request->user()->email;
         // Получаем данные из запроса
         $computerIdentifier = $request->input('computer_identifier');
         $reportNumber = $request->input('report_number');
@@ -119,6 +128,14 @@ class ViewController extends Controller
                     }
                 }
             }
+
+            $this->loggerService->log('Получение файлов', $user, [
+                'computer_identifier' => $computerIdentifier,
+                'report_number' => $reportNumber,
+                'report_date' => $date,
+                'files_count' => $fileCount,
+            ]);
+
             return response()->json([
                 'report_id' => $report->id,
                 'files' => array_values($files),
@@ -126,13 +143,21 @@ class ViewController extends Controller
                 'message' => 'Успешно получены файлы',
             ]);
         } catch (\Exception $e) {
-            \Log::error('Ошибка при получении файлов: ' . $e->getMessage());
+            // \Log::error('Ошибка при получении файлов: ' . $e->getMessage());
+            $this->loggerService->log('Ошибка при получении файлов', $user, [
+                'computer_identifier' => $computerIdentifier,
+                'report_number' => $reportNumber,
+                'report_date' => $date,
+                'error' => $e->getMessage(),
+            ], 'ERROR');
             return response()->json(['error' => 'Произошла ошибка при получении файлов', 'status' => '500'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
     public function getVulnerabilities(Request $request)
 {
+    $user = $request->user()->email;
+
     // Получаем данные из запроса
     $fileId = $request->query('fileId');
     $reportId = $request->query('reportId');
@@ -174,12 +199,22 @@ class ViewController extends Controller
             ];
         }
 
+        $this->loggerService->log('Получение связных уязвимостей', $user, [
+            'file_id' => $fileId,
+            'report_id' => $reportId,
+        ]);
+
         return response()->json([
             'file' => $file,
             'vulnerabilities' => $vulnerabilitiesData,
             'message' => 'Успешно получены уязвимости',
         ]);
     } catch (\Exception $e) {
+        $this->loggerService->log('Ошибка при получении уязвимостей', $user, [
+            'file_id' => $fileId,
+            'report_id' => $reportId,
+            'error' => $e->getMessage(),
+        ], 'error');
         \Log::error('Ошибка при получении уязвимостей: ' . $e->getMessage());
         return response()->json([
             'error' => 'Произошла ошибка при получении уязвимостей',

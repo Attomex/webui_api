@@ -9,9 +9,17 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Validation\Rules;
+use App\Services\LoggerService;
 
 class AuthController extends Controller
 {
+    protected $loggerService;
+
+    public function __construct(LoggerService $loggerService)
+    {
+        $this->loggerService = $loggerService;
+    }
+
     public function login(Request $request)
     {
         // Получаем учетные данные из запроса
@@ -26,7 +34,7 @@ class AuthController extends Controller
         }
 
         // Если пользователь существует, проверяем пароль
-        if(!Hash::check($credentials['password'], $user->password)) {
+        if (!Hash::check($credentials['password'], $user->password)) {
             // Если пароль неверный, возвращаем ошибку
             return response()->json(['error' => 'Неверный пароль'], 401);
         }
@@ -35,6 +43,8 @@ class AuthController extends Controller
         if (!$token = JWTAuth::attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
+
+        $this->loggerService->log('Авторизация', $user->email, 'Администратор успешно авторизовался');
 
         // Возвращаем токен и данные пользователя
         return response()->json([
@@ -46,7 +56,7 @@ class AuthController extends Controller
     public function logout()
     {
         JWTAuth::invalidate(JWTAuth::getToken());
-
+        $this->loggerService->log('Выход из системы', Auth::user()->email, 'Администратор успешно вышел из системы');
         // return response()->json(['message' => 'Successfully logged out']);
         return response()->noContent();
     }
@@ -81,6 +91,7 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        $user = $request->user()->email;
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -92,6 +103,11 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+        ]);
+
+        $this->loggerService->log('Регистрация администратора', $user, [
+            'email' => $request->email,
+            'name' => $request->name
         ]);
 
         return response()->json([
@@ -109,6 +125,11 @@ class AuthController extends Controller
     public function destroy($id)
     {
         $user = User::findOrFail($id);
+
+        $this->loggerService->log('Удаление администратора', Auth::user()->email, [
+            'name' => $user->name,
+            'email' => $user->email
+        ]);
 
         if ($user) {
             $user->delete();

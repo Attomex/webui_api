@@ -49,11 +49,11 @@ const downloadExcel = (selectedErrorLevels, selectedColumns, selectedComputer, s
         const sheet = workbook.addWorksheet(sheetName);
 
         // Добавляем заголовки
-        const headerRow = sheet.addRow(selectedColumns.map(column => {
-            if (column === "Ссылки на источники") return "Ссылки на источники";
-            if (column === "Ссылки на файлы") return "Ссылки на файлы";
-            return column;
-        }));
+        // const headerRow = sheet.addRow(selectedColumns.map(column => {
+        //     if (column === "Ссылки на источники") return "Ссылки на источники";
+        //     if (column === "Ссылки на файлы") return "Ссылки на файлы";
+        //     return column;
+        // }));
 
         // Устанавливаем ширину столбцов
         selectedColumns.forEach((column, index) => {

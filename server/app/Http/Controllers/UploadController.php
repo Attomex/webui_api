@@ -13,11 +13,21 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Models\Vulnerability;
 use App\Models\Identifier;
 use App\Models\File;
+use App\Services\LoggerService;
 
 class UploadController extends Controller
 {
+    protected $loggerService;
+
+    public function __construct(LoggerService $loggerService)
+    {
+        $this->loggerService = $loggerService;
+    }
+
     public function store(Request $request)
     {
+        $user = $request->user()->email;
+
         DB::beginTransaction();
 
         try {
@@ -122,10 +132,17 @@ class UploadController extends Controller
             // file_put_contents($filePath, $jsonString);
 
             DB::commit();
-
+            $this->loggerService->log('Загрузка отчета', $user, [
+                'report_number' => $report->report_number,
+                'report_date' => $report->report_date,
+                'computer' => $computer->identifier
+            ]);
             return response()->json(['message' => "Отчет успешно загружен"]);
         } catch (Exception $e) {
             DB::rollBack();
+            $this->loggerService->log('Ошибка при загрузке отчета', $user, [
+                'error' => $e->getMessage()
+            ], 'error');
             \Log::error('Ошибка при загрузке отчета: ' . $e->getMessage());
 
             return response()->json(['message' => "Произошла ошибка при загрузке отчета: " . $e->getMessage(), 'status' => '500'], Response::HTTP_INTERNAL_SERVER_ERROR);

@@ -13,23 +13,25 @@ const FileTable = ({
     selectedReportNumber,
 }) => {
     const [searchText, setSearchText] = useState("");
-    const [searchedColumn, setSearchedColumn] = useState("");
+    // const [searchedColumn, setSearchedColumn] = useState("");
     const [isModalVisible, setIsModalVisible] = useState(false); // Состояние для модального окна
     const [selectedFileLink, setSelectedFileLink] = useState(""); // Состояние для хранения выбранной ссылки
     const [currentPage, setCurrentPage] = useState(1); // Состояние для текущей страницы
+    const [currentPageSize, setCurrentPageSize] = useState(15);
     const searchInput = useRef(null);
 
     // Обработчик для поиска
     const handleSearch = (selectedKeys, confirm, dataIndex) => {
         confirm();
         setSearchText(selectedKeys[0]);
-        setSearchedColumn(dataIndex);
+        // setSearchedColumn(dataIndex);
     };
 
     // Обработчик для сброса поиска
-    const handleReset = (clearFilters) => {
+    const handleReset = (clearFilters, confirm) => {
         clearFilters();
         setSearchText("");
+        confirm();
     };
 
     // Функция для обрезки текста с учетом подсветки
@@ -103,7 +105,7 @@ const FileTable = ({
                     </Button>
                     <Button
                         onClick={() =>
-                            clearFilters && handleReset(clearFilters)
+                            clearFilters && handleReset(clearFilters, confirm)
                         }
                         size="small"
                         style={{
@@ -120,7 +122,7 @@ const FileTable = ({
                                 closeDropdown: false,
                             });
                             setSearchText(selectedKeys[0]);
-                            setSearchedColumn(dataIndex);
+                            // setSearchedColumn(dataIndex);
                         }}
                     >
                         Фильтр
@@ -140,7 +142,7 @@ const FileTable = ({
         filterIcon: (filtered) => (
             <SearchOutlined
                 style={{
-                    color: "rgb(64, 150, 255)",
+                    color: filtered ? "rgb(64, 150, 255)" : undefined,
                     fontSize: "20px",
                 }}
             />
@@ -184,8 +186,8 @@ const FileTable = ({
             key: "index",
             width: "5%",
             render: (text, record, index) => {
-                // Рассчитываем номер строки с учетом текущей страницы
-                const rowNumber = (currentPage - 1) * 15 + index + 1; // 15 - дефолтный pageSize
+                const rowNumber =
+                    (currentPage - 1) * currentPageSize + index + 1;
                 return rowNumber;
             },
         },
@@ -204,9 +206,9 @@ const FileTable = ({
                     style={{
                         display: "block", // Делаем кнопку блочным элементом
                         margin: "0 auto", // Центрируем её в ячейке
-                    }}  
+                    }}
                     type="primary"
-                    icon={<SearchOutlined />}
+                    icon={<SearchOutlined style={{ marginRight: "5px" }} />}
                     onClick={() => handleViewVulnerabilities(record.id)}
                 >
                     Посмотреть уязвимости
@@ -268,8 +270,8 @@ const FileTable = ({
                         locale: {
                             items_per_page: "/ на странице",
                         },
-                        onChange: (page) => {
-                            // document.body.scrollTop = 0; // For Safari
+                        onChange: (page, pageSize) => {
+                            setCurrentPageSize((prev) => pageSize);
                             setCurrentPage((prev) => page);
                             document.documentElement.scrollTop = 0;
                         },

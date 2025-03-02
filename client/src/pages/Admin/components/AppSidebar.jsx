@@ -1,33 +1,40 @@
 import React from "react";
 // import { useRole } from "../hooks/useRole";
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 
 import {
     CCloseButton,
     CSidebar,
     CSidebarBrand,
-    CSidebarFooter,
+    // CSidebarFooter,
+    // CSidebarToggler,
     CSidebarHeader,
-    CSidebarToggler,
 } from "@coreui/react";
 
 const AppSidebar = () => {
-    const role = 'SuperAdmin';
+    const role = "SuperAdmin";
 
     const commonItems = [
-        { name: "Просмотр отчётов", href: '/admin/view' },
-        { name: "Загрузка отчётов", href: '/admin/upload' },
-        { name: "Сравнить отчёты", href: '/admin/comparison' },
-        { name: "Скачать отчёт", href: '/admin/download' },
-        { name: "Поиск", href: '/admin/search' },
+        { name: "Просмотр отчётов", href: "/admin/view" },
+        { name: "Загрузка отчётов", href: "/admin/upload" },
+        { name: "Сравнить отчёты", href: "/admin/comparison" },
+        { name: "Скачать отчёт", href: "/admin/download" },
+        { name: "Поиск", href: "/admin/search" },
     ];
 
-    const superAdminItem = {
-        name: "Управление",
-        href: '/admin/createAdmin',
-    };
+    const superAdminItem = [
+        {
+            name: "Управление",
+            href: "/admin/createAdmin",
+        },
+        {
+            name: "Просмотр логов",
+            href: "/admin/logs",
+        }
+    ];
 
-    const items = role === 'SuperAdmin' ? [...commonItems, superAdminItem] : commonItems;
+    const items =
+        role === "SuperAdmin" ? [...commonItems, ...superAdminItem] : commonItems;
 
     return (
         <CSidebar className="border-end" colorScheme="dark" position="fixed">

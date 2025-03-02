@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../../utils/api";
+// import api from "../../../utils/api";
 import Cookies from "js-cookie";
 import { logOut } from "../../../utils/auth";
 import LoadingSpinner from "../shared/LoadingSpinner/LoadingSpinner";
@@ -14,6 +14,7 @@ const ProtectedRoute = ({ children }) => {
         setLoading(true);
         const token = Cookies.get("auth_token");
         if (!token) {
+            logOut();
             navigate("/login");
             return;
         } else {

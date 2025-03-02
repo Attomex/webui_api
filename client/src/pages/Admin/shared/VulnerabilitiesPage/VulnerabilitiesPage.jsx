@@ -37,6 +37,7 @@ const VulnerabilitiesPage = () => {
     const [searchText, setSearchText] = useState("");
     const [searchedColumn, setSearchedColumn] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
+    const [currentPageSize, setCurrentPageSize] = useState(15);
 
     const openModal = (vulnerability) => {
         setSelectedVulnerability(vulnerability);
@@ -184,7 +185,7 @@ const VulnerabilitiesPage = () => {
             key: "index",
             width: "5%",
             render: (text, record, index) => {
-                const rowNumber = (currentPage - 1) * 15 + index + 1;
+                const rowNumber = (currentPage - 1) * currentPageSize + index + 1;
                 return rowNumber;
             },
         },
@@ -231,7 +232,7 @@ const VulnerabilitiesPage = () => {
         {
             title: "Действия",
             key: "actions",
-            width: "20%",
+            width: "18%",
             render: (_, record) => (
                 <Button
                     type="primary"
@@ -239,7 +240,7 @@ const VulnerabilitiesPage = () => {
                         display: "block", // Делаем кнопку блочным элементом
                         margin: "0 auto", // Центрируем её в ячейке
                     }}  
-                    icon={<EyeOutlined />}
+                    icon={<EyeOutlined style={{ marginRight: "5px" }} />}
                     onClick={() => {
                         // console.log(record);
                         openModal(record);
@@ -297,8 +298,9 @@ const VulnerabilitiesPage = () => {
                                 locale: {
                                     items_per_page: "/ на странице",
                                 },
-                                onChange: (page) => {
+                                onChange: (page, pageSize) => {
                                     // document.body.scrollTop = 0; // For Safari
+                                    setCurrentPageSize((prev) => pageSize);
                                     setCurrentPage((prev) => page);
                                     document.documentElement.scrollTop = 0;
                                 },
