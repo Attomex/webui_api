@@ -49,11 +49,11 @@ const downloadExcel = (selectedErrorLevels, selectedColumns, selectedComputer, s
         const sheet = workbook.addWorksheet(sheetName);
 
         // Добавляем заголовки
-        // const headerRow = sheet.addRow(selectedColumns.map(column => {
-        //     if (column === "Ссылки на источники") return "Ссылки на источники";
-        //     if (column === "Ссылки на файлы") return "Ссылки на файлы";
-        //     return column;
-        // }));
+        const headerRow = sheet.addRow(selectedColumns.map(column => {
+            if (column === "Ссылки на источники") return "Ссылки на источники";
+            if (column === "Ссылки на файлы") return "Ссылки на файлы";
+            return column;
+        }));
 
         // Устанавливаем ширину столбцов
         selectedColumns.forEach((column, index) => {
@@ -68,7 +68,7 @@ const downloadExcel = (selectedErrorLevels, selectedColumns, selectedComputer, s
         filteredVulnerabilities.forEach(vulnerability => {
             const rowData = selectedColumns.map(column => {
                 if (column === "Уровень ошибки") return vulnerability.error_level;
-                if (column === "Идентификатор уязвимости") return vulnerability.identifiers;
+                if (column === "Идентификатор уязвимости") return vulnerability.identifiers.join(", "); // Идентификаторы через запятую
                 if (column === "Название уязвимости") return vulnerability.name;
                 if (column === "Описание") return vulnerability.description;
                 if (column === "Возможные меры по устранению") return vulnerability.remediation_measures;

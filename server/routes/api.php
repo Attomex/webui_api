@@ -10,6 +10,7 @@ use App\Http\Controllers\SelectFieldController;
 use App\Http\Controllers\ViewController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\CompareReportsController;
+use App\Http\Controllers\DownloadController;
 
 Route::get('/cards', [MainPageController::class, 'index'])->middleware('guest');
 
@@ -22,6 +23,7 @@ Route::prefix('admin')->middleware('jwt.auth')->group(function () {
     Route::get('/view', [ViewController::class, 'getFiles']);
     Route::post('/upload', [UploadController::class, 'store']);
     Route::get('/download', [ViewController::class, 'getFiles']);
+    Route::get('/download-report', [DownloadController::class, 'download']);
     Route::get('/comparison', [CompareReportsController::class, 'compareReports']);
 
     Route::get('/createadmin', [AuthController::class, 'getUsers']);

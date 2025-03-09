@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use Carbon\Carbon;
+use RuntimeException;
+use InvalidArgumentException;
 
 class LoggerService
 {
@@ -17,13 +19,31 @@ class LoggerService
         $this->logFile = $this->getCurrentLogFile();
     }
 
+    /**
+     * Убеждается, что директория для логов существует.
+     * Если директория не существует, пытается её создать.
+     *
+     * @throws RuntimeException Если не удалось создать директорию.
+     */
     protected function ensureLogDirectoryExists()
     {
         if (!file_exists($this->logDirectory)) {
-            mkdir($this->logDirectory, 0755, true);
+            if (!mkdir($this->logDirectory, 0775, true)) {
+                throw new RuntimeException(
+                    "Не удалось создать директорию для логов: {$this->logDirectory}. " .
+                    "Проверьте права доступа или путь."
+                );
+            }
         }
     }
 
+    /**
+     * Возвращает текущий файл лога.
+     * Если срок действия последнего файла истёк, создает новый.
+     *
+     * @return string Путь к текущему файлу лога.
+     * @throws RuntimeException Если не удалось создать файл лога.
+     */
     protected function getCurrentLogFile()
     {
         $files = glob($this->logDirectory . '/log_*.log');
@@ -51,6 +71,12 @@ class LoggerService
         return $this->createNewLogFile();
     }
 
+    /**
+     * Создает новый файл лога.
+     *
+     * @return string Путь к новому файлу лога.
+     * @throws RuntimeException Если не удалось создать файл.
+     */
     protected function createNewLogFile()
     {
         $startDate = Carbon::now()->format('d-m-Y');
@@ -58,11 +84,22 @@ class LoggerService
         $fileName = "log_{$startDate}_to_{$endDate}.log";
         $filePath = $this->logDirectory . '/' . $fileName;
 
-        touch($filePath);
+        if (!touch($filePath)) {
+            throw new RuntimeException("Не удалось создать файл лога: {$filePath}. Проверьте права доступа.");
+        }
 
         return $filePath;
     }
 
+    /**
+     * Логирует действие пользователя.
+     *
+     * @param string $action Действие пользователя.
+     * @param string $user_email Email пользователя.
+     * @param array $data Дополнительные данные.
+     * @param string $level Уровень логирования.
+     * @throws RuntimeException Если не удалось записать лог.
+     */
     public function log($action, $user_email, $data = [], $level = 'info')
     {
         $levelTranslations = [
@@ -85,9 +122,16 @@ class LoggerService
         ];
 
         $logEntryJson = json_encode($logEntry, JSON_UNESCAPED_UNICODE) . PHP_EOL;
-        file_put_contents($this->logFile, $logEntryJson, FILE_APPEND);
+        if (file_put_contents($this->logFile, $logEntryJson, FILE_APPEND) === false) {
+            throw new RuntimeException("Не удалось записать лог в файл: {$this->logFile}.");
+        }
     }
 
+    /**
+     * Возвращает доступные диапазоны дат для логов.
+     *
+     * @return array Массив с общим диапазоном дат.
+     */
     public function getAvailableDateRanges()
     {
         $files = glob($this->logDirectory . '/log_*.log');
@@ -133,19 +177,26 @@ class LoggerService
         ];
     }
 
+    /**
+     * Возвращает логи за указанный диапазон дат.
+     *
+     * @param string $startDate Начальная дата (в формате dd-mm-yyyy).
+     * @param string $endDate Конечная дата (в формате dd-mm-yyyy).
+     * @return array Массив логов.
+     * @throws InvalidArgumentException Если формат даты неверный.
+     */
     public function getLogsByDateRange($startDate, $endDate)
     {
         $logs = [];
         $files = glob($this->logDirectory . '/log_*.log');
 
-        // Проверяем, что входные даты соответствуют формату
+        // Проверяем формат дат
         if (!preg_match('/^\d{2}-\d{2}-\d{4}$/', $startDate) || !preg_match('/^\d{2}-\d{2}-\d{4}$/', $endDate)) {
-            throw new \InvalidArgumentException("Неверный формат даты. Ожидается формат dd-mm-yyyy.");
+            throw new InvalidArgumentException("Неверный формат даты. Ожидается формат dd-mm-yyyy.");
         }
 
-        // Преобразуем входные даты в объекты Carbon
-        $startDateCarbon = Carbon::createFromFormat('d-m-Y', $startDate)->startOfDay(); // Начало дня
-        $endDateCarbon = Carbon::createFromFormat('d-m-Y', $endDate)->endOfDay(); // Конец дня
+        $startDateCarbon = Carbon::createFromFormat('d-m-Y', $startDate)->startOfDay();
+        $endDateCarbon = Carbon::createFromFormat('d-m-Y', $endDate)->endOfDay();
 
         foreach ($files as $file) {
             $fileName = basename($file);
@@ -156,7 +207,7 @@ class LoggerService
                 $fileStartDate = Carbon::createFromFormat('d-m-Y', $matches[1])->startOfDay();
                 $fileEndDate = Carbon::createFromFormat('d-m-Y', $matches[2])->endOfDay();
 
-                // Проверяем, пересекается ли диапазон файла с запрашиваемым диапазоном
+                // Проверяем пересечение диапазонов
                 if ($fileStartDate->lte($endDateCarbon) && $fileEndDate->gte($startDateCarbon)) {
                     $lines = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
                     foreach ($lines as $line) {
