@@ -32,8 +32,6 @@ const ViewReports = () => {
         selectedDate
     );
 
-    const [message, setMessage] = useState("");
-    const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     // const [vulnerabilities, setVulnerabilities] = useState({});
     const [reportId, setReportId] = useState("");
@@ -56,9 +54,7 @@ const ViewReports = () => {
         handleDeleteReport(
             selectedReportNumber,
             selectedDate,
-            handleCloseModal,
-            setError,
-            setMessage
+            handleCloseModal
         );
     };
     // конец удаления отчета
@@ -73,10 +69,7 @@ const ViewReports = () => {
         setSelectedComputer(selectedIdentifier);
         setSelectedDate("");
         setSelectedReportNumber("");
-        // setVulnerabilities([]);
         setFiles({});
-        setError("");
-        setMessage("");
         setVisibleDelete(false);
     };
 
@@ -84,10 +77,7 @@ const ViewReports = () => {
         setSelectedDate(event.target.value);
         if (selectedComputer !== "") {
             setSelectedReportNumber("");
-            // setVulnerabilities([]);
             setFiles({});
-            setError("");
-            setMessage("");
             setVisibleDelete(false);
         }
     };
@@ -96,8 +86,6 @@ const ViewReports = () => {
         setSelectedReportNumber(event.target.value);
         // setVulnerabilities([]);
         setFiles({});
-        setError("");
-        setMessage("");
         setVisibleDelete(false);
     };
 
@@ -105,8 +93,6 @@ const ViewReports = () => {
         event.preventDefault();
         try {
             setLoading(true);
-            setMessage("");
-            setError("");
             // setVulnerabilities([]);
             setFiles({});
             const response = await api().get("/api/admin/view", {
@@ -121,12 +107,10 @@ const ViewReports = () => {
             setFiles(response.data.files);
             setFilesCount(response.data.filesCount);
 
-            setMessage(response.data.message);
-            setError(response.data.error);
+            showSuccessNotification(response.data.message);
             setVisibleDelete(true);
         } catch (error) {
-            setError(error.response.data.error);
-            setMessage("");
+            showErrorNotification(error.response.data.error);
         } finally {
             setLoading(false);
         }
@@ -200,8 +184,6 @@ const ViewReports = () => {
                     )}
                 </form>
                 {loading && <LoadingSpinner text={"Загружается..."} />}
-                {message && showSuccessNotification(message)}
-                {error && showErrorNotification(error)}
                 {Object.keys(files || {}).length > 0 && (
                     <FileTable
                         files={files}

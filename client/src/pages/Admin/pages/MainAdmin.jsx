@@ -15,7 +15,7 @@ const MainAdmin = () => {
         const fetchLatest = async () => {
             try {
                 const response = await api().get("/api/admin/latestbase");
-                setLatest(response.data.latest);
+                setLatest(response.data?.latest);
             } catch (error) {
                 setLatest([]);
             }

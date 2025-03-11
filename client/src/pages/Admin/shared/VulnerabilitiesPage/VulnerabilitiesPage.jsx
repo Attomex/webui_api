@@ -1,13 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import api from "../../../../utils/api";
-import {
-    Table,
-    Input,
-    Button,
-    Space,
-    Tag,
-    ConfigProvider
-} from "antd";
+import { Table, Input, Button, Space, Tag, ConfigProvider } from "antd";
 import { SearchOutlined, EyeOutlined, FilterOutlined } from "@ant-design/icons";
 import ButtonDetails from "../ButtonDetails/ButtonDetails";
 import Highlighter from "react-highlight-words";
@@ -155,10 +148,10 @@ const VulnerabilitiesPage = () => {
         ),
         filterIcon: (filtered) => (
             <SearchOutlined
-            style={{
-                color: "rgb(64, 150, 255)",
-                fontSize: "20px",
-            }}
+                style={{
+                    color: filtered ? "rgb(64, 150, 255)" : undefined,
+                    fontSize: "20px",
+                }}
             />
         ),
         onFilter: (value, record) =>
@@ -185,7 +178,8 @@ const VulnerabilitiesPage = () => {
             key: "index",
             width: "5%",
             render: (text, record, index) => {
-                const rowNumber = (currentPage - 1) * currentPageSize + index + 1;
+                const rowNumber =
+                    (currentPage - 1) * currentPageSize + index + 1;
                 return rowNumber;
             },
         },
@@ -206,7 +200,11 @@ const VulnerabilitiesPage = () => {
                 { text: "Средний", value: "Средний" },
                 { text: "Низкий", value: "Низкий" },
             ],
-            filterIcon: (filtered) => (<FilterOutlined style={{ color: "rgb(64, 150, 255)", fontSize: "20px" }}/>),
+            filterIcon: (filtered) => (
+                <FilterOutlined
+                    style={{ color: "rgb(64, 150, 255)", fontSize: "20px" }}
+                />
+            ),
             onFilter: (value, record) => record.error_level === value,
             render: (errorLevel) => {
                 let color = "";
@@ -239,7 +237,7 @@ const VulnerabilitiesPage = () => {
                     style={{
                         display: "block", // Делаем кнопку блочным элементом
                         margin: "0 auto", // Центрируем её в ячейке
-                    }}  
+                    }}
                     icon={<EyeOutlined style={{ marginRight: "5px" }} />}
                     onClick={() => {
                         // console.log(record);

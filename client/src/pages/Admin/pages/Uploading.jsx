@@ -18,8 +18,6 @@ const Uploading = () => {
   const [computerIdentifier, setComputerIdentifier] = useState("");
   const [newIdentifier, setNewIdentifier] = useState("");
   const computerOptions = useComputerOptions();
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const [loadingText, setLoadingText] = useState("");
@@ -32,16 +30,13 @@ const Uploading = () => {
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
-    setError("");
-    setMessage("");
     if (selectedFile) {
       const fileExtension = selectedFile.name.split(".").pop().toLowerCase();
 
       if (fileExtension === "html") {
         setFile(selectedFile);
-        setError("");
       } else {
-        setError("Пожалуйста, выберите файл с расширением .html");
+        showErrorNotification("Пожалуйста, выберите файл с расширением .html");
         setFile(null);
         document.getElementById("report_file").value = "";
       }
@@ -50,8 +45,6 @@ const Uploading = () => {
 
   const handleIdentifierChange = (event) => {
     setComputerIdentifier(event.target.value);
-    setError("");
-    setMessage("");
   };
 
   const handleSubmit = (event) => {
@@ -70,8 +63,6 @@ const Uploading = () => {
       const parsedData = await parseHTML(content, identifier);
 
       try {
-        setMessage("");
-        setError("");
         setLoading(true);
         setLoadingText("Отчёт загружается на сервер...");
 
@@ -79,18 +70,9 @@ const Uploading = () => {
 
         const response = await api().post('/api/admin/upload', parsedData);
 
-        setMessage(response.data.message);
-        setError("");
+        showSuccessNotification(response.data.message);
       } catch (error) {
-        // if (error.response && error.response.data.status === "400") {
-        //     setError(error.response.data.message);
-        // } else {
-        //     setError(
-        //         "Произошла неизвестная ошибка. Пожалуйста, обратитесь к администратору."
-        //     );
-        // }
-        setError(error.response.data.message);
-        setMessage("");
+        showErrorNotification(error.response.data.message);
       } finally {
         setLoading(false);
         clearFields();
@@ -168,8 +150,6 @@ const Uploading = () => {
         </Button>
       </form>
       {loading && <LoadingSpinner text={loadingText} />}
-      {message && showSuccessNotification(message)}
-      {error && showErrorNotification(error)}
     </div>
   );
 };

@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "../scss/style.scss";
 import { Button } from "react-bootstrap";
-import {
-    CRow,
-} from "@coreui/react";
 import "./pagesModules/ViewReports.css";
 import api from "../../../utils/api";
 
@@ -11,9 +8,8 @@ import LoadingSpinner from "../shared/LoadingSpinner/LoadingSpinner";
 
 import { useComputerOptions } from "../hooks/useReportsData";
 import useComparisonReportData from "../hooks/useComparisonReportData";
-import ButtonDetails from "../shared/ButtonDetails/ButtonDetails";
 import SelectField from "../shared/SelectField/SelectField";
-import ComparisonVulnerability from "../shared/ComparisonVulnerability/ComparisonVulnerability";
+import ComparisonVulnerabilities from "../shared/ComparisonVulnerabilities/ComparisonVulnerabilities";
 import {
     showErrorNotification,
     showSuccessNotification,
@@ -28,10 +24,9 @@ const Comparison = () => {
     // Номера отчётов новые и старые
     const [selectedNewReportNumber, setSelectedNewReportNumber] = useState("");
     const [selectedOldReportNumber, setSelectedOldReportNumber] = useState("");
-    // Списки уязвимостей новые
-    const [newVulnerabilities, setNewVulnerabilities] = useState([]);
-    const [oldVulnerabilities, setOldVulnerabilities] = useState([]);
-    const [fixedVulnerabilities, setFixedVulnerabilities] = useState([]);
+
+    const [data, setData] = useState({});
+
     // Списки
     const computerOptions = useComputerOptions();
     const {
@@ -44,82 +39,63 @@ const Comparison = () => {
         selectedNewDate,
         selectedOldDate
     );
-    // Сообщения
-    const [message, setMessage] = useState("");
-    const [error, setError] = useState("");
 
     // Статус сравнения
     const [comparisonStatus, setComparisonStatus] = useState(false);
-
-    const [visible, setVisible] = useState(false);
-    const [selectedVulnerability, setSelectedVulnerability] = useState(null);
 
     useEffect(() => {
         document.title = "Сравнение отчётов";
     }, []);
 
-    const openModal = (vulnerability) => {
-        setSelectedVulnerability(vulnerability);
-        setVisible(true);
-    };
 
     const handleComputerChange = (event) => {
-        const selectedIdentifier = event.target.value;
-        setSelectedComputer(selectedIdentifier);
+        event.preventDefault();
+        setSelectedComputer(event.target.value);
         setSelectedNewDate("");
         setSelectedOldDate("");
         setSelectedNewReportNumber("");
         setSelectedOldReportNumber("");
-        setNewVulnerabilities([]);
-        setOldVulnerabilities([]);
-        setError("");
-        setMessage("");
+        setData({});
     };
 
     const handleNewDateChange = (event) => {
+        event.preventDefault();
         setSelectedNewDate(event.target.value);
         if (selectedComputer !== "") {
             setSelectedOldDate("");
             setSelectedNewReportNumber("");
             setSelectedOldReportNumber("");
-            setNewVulnerabilities([]);
-            setError("");
-            setMessage("");
+            setData({});
         }
     };
 
     const handleOldDateChange = (event) => {
+        event.preventDefault();
         setSelectedOldDate(event.target.value);
         if (selectedComputer !== "") {
             setSelectedOldReportNumber("");
-            setOldVulnerabilities([]);
-            setError("");
-            setMessage("");
+            setData({});
         }
     };
 
     const handleNewReportNumberChange = (event) => {
+        event.preventDefault();
         setSelectedNewReportNumber(event.target.value);
         setSelectedOldDate("");
         setSelectedOldReportNumber("");
-        setNewVulnerabilities([]);
-        setError("");
-        setMessage("");
+        setData({});
     };
 
     const handleOldReportNumberChange = (event) => {
+        event.preventDefault();
         setSelectedOldReportNumber(event.target.value);
-        setOldVulnerabilities([]);
-        setError("");
-        setMessage("");
+        setData({});
     };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
         try {
             setComparisonStatus(true);
-            setMessage("");
-            setError("");
             const response = await api().get("/api/admin/comparison", {
                 params: {
                     computer_identifier: selectedComputer,
@@ -129,14 +105,13 @@ const Comparison = () => {
                     old_report_number: selectedOldReportNumber,
                 },
             });
-            setNewVulnerabilities(response.data.appeared_vulnerabilities); // новые
-            setFixedVulnerabilities(response.data.fixed_vulnerabilities); // исправленные
-            setOldVulnerabilities(response.data.remaining_vulnerabilities); // старые
-            setMessage(response.data.message);
-            setError("");
+            setData(response.data);
+            // setNewVulnerabilities(response.data.appeared_vulnerabilities); // новые
+            // setFixedVulnerabilities(response.data.fixed_vulnerabilities); // исправленные
+            // setOldVulnerabilities(response.data.remaining_vulnerabilities); // старые
+            showSuccessNotification(response.data.message);
         } catch (error) {
-            setError(error.response.data.error);
-            setMessage("");
+            showErrorNotification(error.response.data.error);
         } finally {
             setComparisonStatus(false);
         }
@@ -232,73 +207,8 @@ const Comparison = () => {
             {comparisonStatus && (
                 <LoadingSpinner text="Происходит сравнение отчётов, пожалуйста подождите немного" />
             )}
-            {message && showSuccessNotification(message)}
-            {error && showErrorNotification(error)}
-            {message && (
-                <>
-                  <CRow>
-                    <ComparisonVulnerability
-                      text="Появившиеся уязвимости"
-                      selectedVulnerability={newVulnerabilities}
-                      openModal={openModal}
-                    />
-
-                    <ComparisonVulnerability
-                      text="Неисправленные уязвимости"
-                      selectedVulnerability={oldVulnerabilities}
-                      openModal={openModal}
-                    />
-
-                    <ComparisonVulnerability
-                      text="Исправленные уязвимости"
-                      selectedVulnerability={fixedVulnerabilities}
-                      openModal={openModal}
-                    />
-                  </CRow>
-                  <ButtonDetails
-                    visible={visible}
-                    onClose={() => setVisible(false)}
-                    selectedVulnerability={selectedVulnerability}
-                  />
-                </>
-                // <>
-                //     <Tabs
-                //         defaultActiveKey="appeared"
-                //         id="fill-tab-example"
-                //         className="mb-3"
-                //         fill
-                //     >
-                //         <Tab eventKey="appeared" title="Появившиеся уязвимости">
-                //             <ComparisonVulnerability
-                //                 text="Появившиеся уязвимости"
-                //                 selectedVulnerability={newVulnerabilities}
-                //                 openModal={openModal}
-                //             />
-                //         </Tab>
-                //         <Tab
-                //             eventKey="unfixed"
-                //             title="Неисправленные уязвимости"
-                //         >
-                //             <ComparisonVulnerability
-                //                 text="Неисправленные уязвимости"
-                //                 selectedVulnerability={oldVulnerabilities}
-                //                 openModal={openModal}
-                //             />
-                //         </Tab>
-                //         <Tab eventKey="fixed" title="Исправленные уязвимости">
-                //             <ComparisonVulnerability
-                //                 text="Исправленные уязвимости"
-                //                 selectedVulnerability={fixedVulnerabilities}
-                //                 openModal={openModal}
-                //             />
-                //         </Tab>
-                //     </Tabs>
-                //     <ButtonDetails
-                //         visible={visible}
-                //         onClose={() => setVisible(false)}
-                //         selectedVulnerability={selectedVulnerability}
-                //     />
-                // </>
+            {Object.keys(data).length > 0 && (
+                <ComparisonVulnerabilities data={data} />
             )}
         </div>
     );

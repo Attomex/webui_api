@@ -32,8 +32,6 @@ const DownloadReport = () => {
         selectedDate
     );
 
-    const [message, setMessage] = useState("");
-    const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [download, setDownload] = useState(true);
     const [reportId, setReportId] = useState("");
@@ -78,8 +76,6 @@ const DownloadReport = () => {
         setSelectedDate("");
         setSelectedReportNumber("");
         setFiles({});
-        setError("");
-        setMessage("");
         setDownload(true);
         setReportLoaded(false); // Сбрасываем состояние загрузки отчёта
     };
@@ -89,8 +85,6 @@ const DownloadReport = () => {
         if (selectedComputer !== "") {
             setSelectedReportNumber("");
             setFiles({});
-            setError("");
-            setMessage("");
             setDownload(true);
             setReportLoaded(false); // Сбрасываем состояние загрузки отчёта
         }
@@ -99,8 +93,6 @@ const DownloadReport = () => {
     const handleReportNumberChange = (event) => {
         setSelectedReportNumber(event.target.value);
         setFiles({});
-        setError("");
-        setMessage("");
         setDownload(true);
         setReportLoaded(false); // Сбрасываем состояние загрузки отчёта
     };
@@ -109,8 +101,6 @@ const DownloadReport = () => {
         event.preventDefault();
         try {
             setLoading(true);
-            setMessage("");
-            setError("");
             setFiles({});
             setDownload(true);
             const response = await api().get("/api/admin/download", {
@@ -124,13 +114,11 @@ const DownloadReport = () => {
             setFiles(response.data.files);
             setFilesCount(response.data.filesCount);
 
-            setMessage(response.data.message);
-            setError("");
+            showSuccessNotification(response.data.message);
             setDownload(false);
             setReportLoaded(true); // Отчёт успешно загружен
         } catch (error) {
-            setError(error.response.data.error);
-            setMessage("");
+            showErrorNotification(error.response.data.error);
             setReportLoaded(false); // Ошибка загрузки отчёта
         } finally {
             setLoading(false);
@@ -231,8 +219,6 @@ const DownloadReport = () => {
                     className="downloadExcel"
                     type="button"
                     onClick={() => {
-                        setMessage("");
-                        setError("");
                         setVisibleModalDwnld(true); // Открываем модальное окно для скачивания
                     }}
                     disabled={!isReportDataFilled() || (downloadOption === "viewThenDownload" ? download : false)} // Блокируем, если данные не заполнены или выбран "Просмотреть перед скачиванием" и отчет не загружен
@@ -240,8 +226,6 @@ const DownloadReport = () => {
                 ></Button>
             </form>
             {loading && <LoadingSpinner text="Загружается..." />}
-            {message && showSuccessNotification(message)}
-            {error && showErrorNotification(error)}
             {Object.keys(files || {}).length > 0 && (
                 <FileTable
                     files={files}
