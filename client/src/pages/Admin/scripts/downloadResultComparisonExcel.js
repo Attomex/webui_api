@@ -16,6 +16,7 @@ function getCurrentDate(separator = ".") {
     const formattedDate = newDate.toLocaleString("ru-RU", options);
     // Разделяем дату и время
     const [datePart, timePart] = formattedDate.split(", ");
+    
     // Возвращаем дату и время в нужном формате
     return `${datePart.replace(/\./g, separator)} ${timePart}`;
 }
