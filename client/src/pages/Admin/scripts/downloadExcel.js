@@ -1,18 +1,34 @@
 import ExcelJS from 'exceljs';
 
-function getCurrentDate(separator = "") {
-    let newDate = new Date();
-    let date = newDate.getDate();
-    let month = newDate.getMonth() + 1;
-    let year = newDate.getFullYear();
+function getCurrentDate(separator = ".") {
+    const newDate = new Date();
+    // Получаем дату и время по московскому времени (UTC+3)
+    const options = {
+        timeZone: "Europe/Moscow", // Указываем временную зону (Москва)
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+    };
+    // Форматируем дату и время
+    const formattedDate = newDate.toLocaleString("ru-RU", options);
+    // Разделяем дату и время
+    const [datePart, timePart] = formattedDate.split(", ");
+    // Возвращаем дату и время в нужном формате
+    return `${datePart.replace(/\./g, separator)} ${timePart}`;
+}
 
-    return `${year}${separator}${
-        month < 10 ? `0${month}` : `${month}`
-    }${separator}${date}`;
+function formatDate(dateString, separator = ".") {
+    const [year, month, day] = dateString.split("-");
+    return `${day}${separator}${month}${separator}${year}`;
 }
 
 const downloadExcel = (selectedErrorLevels, selectedColumns, selectedComputer, selectedReportNumber, selectedDate, vulnerabilities) => {
     let Date_now = getCurrentDate(".");
+
+    const formattedSelectedDate = formatDate(selectedDate);
     
     // Ширина столбцов
     const columnWidths = {
@@ -30,9 +46,13 @@ const downloadExcel = (selectedErrorLevels, selectedColumns, selectedComputer, s
 
     // Добавляем информацию о компьютере на отдельный лист
     const infoSheet = workbook.addWorksheet("Информация");
+    infoSheet.columns = [
+        { header: "Параметр", key: "param", width: 30 },
+        { header: "Значение", key: "value", width: 40 },
+    ];
     infoSheet.addRow(["Идентификатор компьютера", selectedComputer]);
     infoSheet.addRow(["Номер отчёта", selectedReportNumber]);
-    infoSheet.addRow(["Дата формирования отчёта", selectedDate]);
+    infoSheet.addRow(["Дата формирования отчёта", formattedSelectedDate]);
     infoSheet.addRow(["Дата загрузки отчёта с сервера", Date_now]);
 
     // Создаем стили для каждого уровня ошибок

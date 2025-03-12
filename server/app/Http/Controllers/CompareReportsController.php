@@ -7,11 +7,21 @@ use App\Models\Report;
 use App\Models\Computer;
 use App\Models\ReportVulnerability;
 use Symfony\Component\HttpFoundation\Response;
+use App\Services\LoggerService;
 
 class CompareReportsController extends Controller
 {
+    protected $loggerService;
+
+    public function __construct(LoggerService $loggerService)
+    {
+        $this->loggerService = $loggerService;
+    }
+
     public function compareReports(Request $request)
     {
+        $user = $request->user()->email;
+
         $newReportNumber = $request->input('new_report_number');
         $newReportDate = $request->input('new_report_date');
         $oldReportNumber = $request->input('old_report_number');
@@ -94,11 +104,23 @@ class CompareReportsController extends Controller
                 })->keyBy('identifier_id');
             })
             ->toArray();
+        try {
+            // Сравниваем уязвимости
+            $appearedVulnerabilities = array_diff_key($newVulnerabilities, $oldVulnerabilities);
+            $remainingVulnerabilities = array_intersect_key($newVulnerabilities, $oldVulnerabilities);
+            $fixedVulnerabilities = array_diff_key($oldVulnerabilities, $newVulnerabilities);
+        } catch (\Exception $e) {
+            $this->loggerService->log('Произошла ошибка при сравнении отчётов', $user, [
+                'error' => $e->getMessage(),
+                'Компьютер' => $computerIdentifier,
+                'Дата нового отчёта' => $newReportDate,
+                'Номер нового отчёта' => $newReportNumber,
+                'Дата старого отчёта' => $oldReportDate,
+                'Номер старого отчёта' => $oldReportNumber
+            ], 'error');
+            return response()->json(['error' => 'Произошла ошибка при сравнении отчётов', 'status' => '400'], Response::HTTP_BAD_REQUEST);
+        }
 
-        // Сравниваем уязвимости
-        $appearedVulnerabilities = array_diff_key($newVulnerabilities, $oldVulnerabilities);
-        $remainingVulnerabilities = array_intersect_key($newVulnerabilities, $oldVulnerabilities);
-        $fixedVulnerabilities = array_diff_key($oldVulnerabilities, $newVulnerabilities);
 
         // // Формируем массив с результатами
         // $results = [
@@ -113,6 +135,14 @@ class CompareReportsController extends Controller
         // // Сохраняем результаты в файл
         // $filePath = storage_path('app/comparison_results.json'); // Путь к файлу в директории storage/app
         // file_put_contents($filePath, $jsonResults);
+
+        $this->loggerService->log('Сравнение отчётов', $user, [
+            'Компьютер' => $computerIdentifier,
+            'Дата нового отчёта' => $newReportDate,
+            'Номер нового отчёта' => $newReportNumber,
+            'Дата старого отчёта' => $oldReportDate,
+            'Номер старого отчёта' => $oldReportNumber
+        ]);
 
         return response()->json([
             'appeared_vulnerabilities' => array_values($appearedVulnerabilities),
