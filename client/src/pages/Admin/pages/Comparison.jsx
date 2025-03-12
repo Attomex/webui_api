@@ -3,6 +3,9 @@ import "../scss/style.scss";
 import { Button } from "react-bootstrap";
 import "./pagesModules/ViewReports.css";
 import api from "../../../utils/api";
+import downloadResultComparisonExcel from "../scripts/downloadResultComparisonExcel";
+
+import { Modal } from "antd";
 
 import LoadingSpinner from "../shared/LoadingSpinner/LoadingSpinner";
 
@@ -27,6 +30,9 @@ const Comparison = () => {
 
     const [data, setData] = useState({});
 
+    // Статус сравнения
+    const [comparisonStatus, setComparisonStatus] = useState(false);
+
     // Списки
     const computerOptions = useComputerOptions();
     const {
@@ -40,13 +46,33 @@ const Comparison = () => {
         selectedOldDate
     );
 
-    // Статус сравнения
-    const [comparisonStatus, setComparisonStatus] = useState(false);
+    // Модальное окно для скачивания
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [downloadingComparison, setDownloadingComparison] = useState(false);
+
+    const showModal = () => setIsModalOpen(true);
+    const handleCancel = () => {
+        setDownloadingComparison(false);
+        setIsModalOpen(false);
+    };
+
+    const handleOk = () => {
+        setDownloadingComparison(true);
+        downloadResultComparisonExcel(
+            selectedComputer,
+            selectedNewDate,
+            selectedOldDate,
+            selectedNewReportNumber,
+            selectedOldReportNumber,
+            data
+        )
+        handleCancel();
+        setDownloadingComparison(false);
+    };
 
     useEffect(() => {
         document.title = "Сравнение отчётов";
     }, []);
-
 
     const handleComputerChange = (event) => {
         event.preventDefault();
@@ -106,9 +132,6 @@ const Comparison = () => {
                 },
             });
             setData(response.data);
-            // setNewVulnerabilities(response.data.appeared_vulnerabilities); // новые
-            // setFixedVulnerabilities(response.data.fixed_vulnerabilities); // исправленные
-            // setOldVulnerabilities(response.data.remaining_vulnerabilities); // старые
             showSuccessNotification(response.data.message);
         } catch (error) {
             showErrorNotification(error.response.data.error);
@@ -203,6 +226,15 @@ const Comparison = () => {
                     type="submit"
                     value="Сравнить отчёты"
                 />
+                {Object.keys(data).length > 0 && (
+                    <Button
+                        style={{ marginTop: "10px", marginBottom: "10px", marginLeft: "10px" }}
+                        as="input"
+                        type="button"
+                        value="Скачать результаты сравнения"
+                        onClick={showModal}>
+                    </Button>
+                )}
             </form>
             {comparisonStatus && (
                 <LoadingSpinner text="Происходит сравнение отчётов, пожалуйста подождите немного" />
@@ -210,6 +242,16 @@ const Comparison = () => {
             {Object.keys(data).length > 0 && (
                 <ComparisonVulnerabilities data={data} />
             )}
+
+            <Modal
+                title="Подтверждение"
+                open={isModalOpen}
+                onOk={handleOk}
+                onCancel={handleCancel}
+                confirmLoading={downloadingComparison}
+            >
+                <p>Вы уверены, что скачать результаты сравнения отчёта?</p>
+            </Modal>
         </div>
     );
 };
