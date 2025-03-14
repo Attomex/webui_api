@@ -252,4 +252,4 @@ const DownloadReport = () => {
     );
 };
 
-export default React.memo(DownloadReport);
+export default DownloadReport;

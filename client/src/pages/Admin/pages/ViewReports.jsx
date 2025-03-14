@@ -199,4 +199,4 @@ const ViewReports = () => {
     );
 };
 
-export default React.memo(ViewReports);
+export default ViewReports;

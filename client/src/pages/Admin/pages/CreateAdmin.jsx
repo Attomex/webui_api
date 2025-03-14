@@ -213,4 +213,4 @@ const CreateAdmin = () => {
     );
 };
 
-export default React.memo(CreateAdmin);
+export default CreateAdmin;

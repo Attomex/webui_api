@@ -256,4 +256,4 @@ const Comparison = () => {
     );
 };
 
-export default React.memo(Comparison);
+export default Comparison;

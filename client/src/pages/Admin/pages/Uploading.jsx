@@ -154,4 +154,4 @@ const Uploading = () => {
   );
 };
 
-export default React.memo(Uploading);
+export default Uploading;

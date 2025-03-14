@@ -41,4 +41,4 @@ const MainAdmin = () => {
     );
 };
 
-export default React.memo(MainAdmin);
+export default MainAdmin;
