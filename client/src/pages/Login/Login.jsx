@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Alert, Container, Card } from "react-bootstrap";
+import { Button as AntdButton } from "antd";
+import { ArrowLeftOutlined } from "@ant-design/icons";
 import axios from "axios";
 import api from "../../utils/api";
-import { logIn } from "../../utils/auth";
+import { useAuth } from "../Admin/context/AuthContext";
 
 const LoginPage = () => {
     const [email, setEmail] = useState("");
@@ -11,8 +13,9 @@ const LoginPage = () => {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const { login } = useAuth(); // Используем контекст
 
-    const url = process.env.REACT_APP_API_URL
+    const url = process.env.REACT_APP_API_URL;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -21,16 +24,21 @@ const LoginPage = () => {
         setError("");
 
         try {
-            await axios.get(`${url}/sanctum/csrf-cookie`, {withCredentials: true}).then(() => {
-                api().post("/api/auth/login", { email, password }).then((response) => {
-                    logIn(response.data.token);
-                    navigate("/admin");
-                }).catch((error) => {
-                    setError(error.response.data.error);
-                    console.error(error);
+            await axios
+                .get(`${url}/sanctum/csrf-cookie`, { withCredentials: true })
+                .then(() => {
+                    api()
+                        .post("/api/auth/login", { email, password })
+                        .then((response) => {
+                            const token = response.data.token;
+                            login(token); // Используем контекст для входа
+                            navigate("/admin");
+                        })
+                        .catch((error) => {
+                            setError(error.response.data.error);
+                            console.error(error);
+                        });
                 });
-            });
-            // Здесь можно перенаправить пользователя на другую страницу или обновить состояние приложения
         } catch (err) {
             setError("Неправильный логин или пароль");
         } finally {
@@ -38,16 +46,31 @@ const LoginPage = () => {
         }
     };
 
-    // if (isLoggedIn()) {
-    //     navigate("/admin");
-    // }
-
     return (
         <Container
-            className="d-flex justify-content-center align-items-center"
+            className="d-flex justify-content-center align-items-center flex-column"
             style={{ minHeight: "100vh" }}
         >
-            <Card style={{ width: "400px", padding: "20px" }}>
+
+            <Card
+                style={{
+                    width: "400px",
+                    padding: "20px",
+                    position: "relative",
+                }}
+            >
+                <AntdButton
+                    type="dashed"
+                    onClick={() => navigate("/")}
+                    style={{
+                        position: "absolute",
+                        left: "0",
+                        top: "-40px",
+                    }}
+                    icon={<ArrowLeftOutlined />}
+                >
+                    Вернуться назад
+                </AntdButton>
                 <Card.Body>
                     <h2 className="text-center mb-4">Вход</h2>
                     {error && <Alert variant="danger">{error}</Alert>}

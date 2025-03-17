@@ -18,10 +18,12 @@ import Search from "./pages/Search";
 import CreateAdmin from "./pages/CreateAdmin";
 import ViewLogs from "./pages/ViewLogs";
 // import LoginPage from "./pages/LoginPage";
+import { AuthProvider } from "./context/AuthContext";
+import RoleProtectedRoute from "./provider/RoleProtectedRoute";
 
 const AdminPanel = () => {
     return (
-        <>
+        <AuthProvider>
             <Routes>
                 <Route
                     path="/*"
@@ -60,12 +62,24 @@ const AdminPanel = () => {
                                     />
                                     <Route
                                         path="/createAdmin"
-                                        element={<CreateAdmin />}
+                                        element={
+                                            <RoleProtectedRoute
+                                                allowedRoles={["SuperAdmin"]}
+                                            >
+                                                <CreateAdmin />
+                                            </RoleProtectedRoute>
+                                        }
                                     />
 
                                     <Route
                                         path="/logs"
-                                        element={<ViewLogs />}
+                                        element={
+                                            <RoleProtectedRoute
+                                                allowedRoles={["SuperAdmin"]}
+                                            >
+                                                <ViewLogs />
+                                            </RoleProtectedRoute>
+                                        }
                                     />
                                 </Routes>
                             </AdminLayout>
@@ -73,7 +87,7 @@ const AdminPanel = () => {
                     }
                 />
             </Routes>
-        </>
+        </AuthProvider>
     );
 };
 

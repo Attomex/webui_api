@@ -39,8 +39,15 @@ class AuthController extends Controller
             return response()->json(['error' => 'Неверный пароль'], 401);
         }
 
-        // Если почта и пароль верные, генерируем токен
-        if (!$token = JWTAuth::attempt($credentials)) {
+        // Создаем payload
+        $customClaims = [
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'role' => $user->role,
+        ];
+
+        // Генерируем токен с payload
+        if (!$token = JWTAuth::claims($customClaims)->attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
@@ -48,8 +55,7 @@ class AuthController extends Controller
 
         // Возвращаем токен и данные пользователя
         return response()->json([
-            'token' => $token,
-            'user' => Auth::user()
+            'token' => $token
         ]);
     }
 

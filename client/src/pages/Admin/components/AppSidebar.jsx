@@ -10,9 +10,11 @@ import {
     // CSidebarToggler,
     CSidebarHeader,
 } from "@coreui/react";
+import { useAuth } from "../context/AuthContext";
 
 const AppSidebar = () => {
-    const role = "SuperAdmin";
+    const { user } = useAuth();
+    const role = user?.role;
 
     const commonItems = [
         { name: "Просмотр отчётов", href: "/admin/view" },
