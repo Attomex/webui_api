@@ -37,6 +37,8 @@ const DownloadReport = () => {
     const [reportId, setReportId] = useState("");
     const [files, setFiles] = useState({});
     const [filesCount, setFilesCount] = useState(0);
+    const [errorLevels, setErrorLevels] = useState([]);
+    const [reportStatus, setReportStatus] = useState("");
 
     // Модальное окно скачивания отчёта
     const [visibleModalDwnld, setVisibleModalDwnld] = useState(false);
@@ -113,6 +115,8 @@ const DownloadReport = () => {
             setReportId(response.data.report_id);
             setFiles(response.data.files);
             setFilesCount(response.data.filesCount);
+            setErrorLevels(response.data.errorLevels);
+            setReportStatus(response.data.reportStatus);
 
             showSuccessNotification(response.data.message);
             setDownload(false);
@@ -124,7 +128,7 @@ const DownloadReport = () => {
             setLoading(false);
         }
     };
-    
+
     useEffect(() => {
         if (visibleModalDwnld) {
             return;
@@ -188,7 +192,10 @@ const DownloadReport = () => {
                         value="viewThenDownload"
                         checked={downloadOption === "viewThenDownload"}
                         onChange={(e) => setDownloadOption(e.target.value)}
-                        disabled={reportLoaded && downloadOption === "viewThenDownload"} // Блокируем, если отчёт загружен и выбран "Просмотреть перед скачиванием"
+                        disabled={
+                            reportLoaded &&
+                            downloadOption === "viewThenDownload"
+                        } // Блокируем, если отчёт загружен и выбран "Просмотреть перед скачиванием"
                     />
                     <Form.Check
                         type="radio"
@@ -198,7 +205,10 @@ const DownloadReport = () => {
                         value="downloadImmediately"
                         checked={downloadOption === "downloadImmediately"}
                         onChange={(e) => setDownloadOption(e.target.value)}
-                        disabled={reportLoaded && downloadOption === "viewThenDownload"} // Блокируем, если отчёт загружен и выбран "Просмотреть перед скачиванием"
+                        disabled={
+                            reportLoaded &&
+                            downloadOption === "viewThenDownload"
+                        } // Блокируем, если отчёт загружен и выбран "Просмотреть перед скачиванием"
                     />
                 </Form.Group>
                 <Button
@@ -210,7 +220,9 @@ const DownloadReport = () => {
                     as="input"
                     type="submit"
                     value="Посмотреть отчёт"
-                    disabled={loading || downloadOption === "downloadImmediately"} // Блокируем, если выбран "Скачать сразу"
+                    disabled={
+                        loading || downloadOption === "downloadImmediately"
+                    } // Блокируем, если выбран "Скачать сразу"
                 />
                 <Button
                     variant="secondary"
@@ -221,7 +233,12 @@ const DownloadReport = () => {
                     onClick={() => {
                         setVisibleModalDwnld(true); // Открываем модальное окно для скачивания
                     }}
-                    disabled={!isReportDataFilled() || (downloadOption === "viewThenDownload" ? download : false)} // Блокируем, если данные не заполнены или выбран "Просмотреть перед скачиванием" и отчет не загружен
+                    disabled={
+                        !isReportDataFilled() ||
+                        (downloadOption === "viewThenDownload"
+                            ? download
+                            : false)
+                    } // Блокируем, если данные не заполнены или выбран "Просмотреть перед скачиванием" и отчет не загружен
                     value="Скачать отчёт"
                 ></Button>
             </form>
@@ -231,6 +248,8 @@ const DownloadReport = () => {
                     files={files}
                     reportId={reportId}
                     filesCount={filesCount}
+                    errorLevels={errorLevels}
+                    reportStatus={reportStatus}
                     selectedComputer={selectedComputer}
                     selectedDate={selectedDate}
                     selectedReportNumber={selectedReportNumber}
@@ -247,6 +266,7 @@ const DownloadReport = () => {
                 selectedComputer={selectedComputer}
                 selectedDate={selectedDate}
                 selectedReportNumber={selectedReportNumber}
+                errorLevels={errorLevels}
             />
         </div>
     );

@@ -1,4 +1,4 @@
-import ExcelJS from 'exceljs';
+import ExcelJS from "exceljs";
 
 function getCurrentDate(separator = ".") {
     const newDate = new Date();
@@ -25,20 +25,35 @@ function formatDate(dateString, separator = ".") {
     return `${day}${separator}${month}${separator}${year}`;
 }
 
-const downloadExcel = (selectedErrorLevels, selectedColumns, selectedComputer, selectedReportNumber, selectedDate, vulnerabilities) => {
+const errorLevelToPlural = {
+    Критический: "Критические",
+    Высокий: "Высокие",
+    Средний: "Средние",
+    Низкий: "Низкие",
+};
+
+const downloadExcel = (
+    selectedErrorLevels,
+    selectedColumns,
+    selectedComputer,
+    selectedReportNumber,
+    selectedDate,
+    errorLevels,
+    vulnerabilities
+) => {
     let Date_now = getCurrentDate(".");
 
     const formattedSelectedDate = formatDate(selectedDate);
-    
+
     // Ширина столбцов
     const columnWidths = {
         "Уровень ошибки": 16,
         "Идентификатор уязвимости": 26,
         "Название уязвимости": 30,
-        "Описание": 40,
+        Описание: 40,
         "Возможные меры по устранению": 50,
         "Ссылки на источники": 60,
-        "Ссылки на файлы": 60
+        "Ссылки на файлы": 60,
     };
 
     // Создаем новую книгу
@@ -54,6 +69,11 @@ const downloadExcel = (selectedErrorLevels, selectedColumns, selectedComputer, s
     infoSheet.addRow(["Номер отчёта", selectedReportNumber]);
     infoSheet.addRow(["Дата формирования отчёта", formattedSelectedDate]);
     infoSheet.addRow(["Дата загрузки отчёта с сервера", Date_now]);
+    infoSheet.addRow([]);
+    infoSheet.addRow(["Критических уязвимостей", errorLevels.critical]);
+    infoSheet.addRow(["Высоких уязвимостей", errorLevels.high]);
+    infoSheet.addRow(["Средних уязвимостей", errorLevels.medium]);
+    infoSheet.addRow(["Низких уязвимостей", errorLevels.low]);
 
     // Создаем стили для каждого уровня ошибок
     // const styles = {
@@ -64,16 +84,20 @@ const downloadExcel = (selectedErrorLevels, selectedColumns, selectedComputer, s
     // };
 
     // Создаем листы для каждого уровня ошибок
-    selectedErrorLevels.forEach(errorLevel => {
-        const sheetName = `${errorLevel} ошибки`;
+    selectedErrorLevels.forEach((errorLevel) => {
+        const pluralErrorLevel = errorLevelToPlural[errorLevel] || errorLevel; // Если уровень не найден, оставляем исходный
+        const sheetName = `${pluralErrorLevel} ошибки`; // Формируем название листа
         const sheet = workbook.addWorksheet(sheetName);
 
         // Добавляем заголовки
-        const headerRow = sheet.addRow(selectedColumns.map(column => {
-            if (column === "Ссылки на источники") return "Ссылки на источники";
-            if (column === "Ссылки на файлы") return "Ссылки на файлы";
-            return column;
-        }));
+        const headerRow = sheet.addRow(
+            selectedColumns.map((column) => {
+                if (column === "Ссылки на источники")
+                    return "Ссылки на источники";
+                if (column === "Ссылки на файлы") return "Ссылки на файлы";
+                return column;
+            })
+        );
 
         // Устанавливаем ширину столбцов
         selectedColumns.forEach((column, index) => {
@@ -82,24 +106,31 @@ const downloadExcel = (selectedErrorLevels, selectedColumns, selectedComputer, s
         });
 
         // Фильтруем уязвимости по уровню ошибки
-        const filteredVulnerabilities = vulnerabilities.filter(vulnerability => vulnerability.error_level === errorLevel);
+        const filteredVulnerabilities = vulnerabilities.filter(
+            (vulnerability) => vulnerability.error_level === errorLevel
+        );
 
         // Добавляем данные
-        filteredVulnerabilities.forEach(vulnerability => {
-            const rowData = selectedColumns.map(column => {
-                if (column === "Уровень ошибки") return vulnerability.error_level;
-                if (column === "Идентификатор уязвимости") return vulnerability.identifiers.join(", "); // Идентификаторы через запятую
+        filteredVulnerabilities.forEach((vulnerability) => {
+            const rowData = selectedColumns.map((column) => {
+                if (column === "Уровень ошибки")
+                    return vulnerability.error_level;
+                if (column === "Идентификатор уязвимости")
+                    return vulnerability.identifiers.join(", "); // Идентификаторы через запятую
                 if (column === "Название уязвимости") return vulnerability.name;
                 if (column === "Описание") return vulnerability.description;
-                if (column === "Возможные меры по устранению") return vulnerability.remediation_measures;
-                if (column === "Ссылки на источники") return vulnerability.source_links.join("\n");
-                if (column === "Ссылки на файлы") return vulnerability.files.join("\n");
+                if (column === "Возможные меры по устранению")
+                    return vulnerability.remediation_measures;
+                if (column === "Ссылки на источники")
+                    return vulnerability.source_links.join("\n");
+                if (column === "Ссылки на файлы")
+                    return vulnerability.files.join("\n");
                 return "";
             });
             const row = sheet.addRow(rowData);
 
             // Устанавливаем автоперенос текста для каждой ячейки
-            row.eachCell({ includeEmpty: true }, cell => {
+            row.eachCell({ includeEmpty: true }, (cell) => {
                 cell.alignment = { wrapText: true };
                 // cell.fill = styles[errorLevel];
             });
@@ -107,7 +138,7 @@ const downloadExcel = (selectedErrorLevels, selectedColumns, selectedComputer, s
     });
 
     // Генерируем файл и запускаем скачивание
-    workbook.xlsx.writeBuffer().then(buffer => {
+    workbook.xlsx.writeBuffer().then((buffer) => {
         const blob = new Blob([buffer], {
             type: "application/octet-stream",
         });

@@ -37,6 +37,8 @@ const ViewReports = () => {
     const [reportId, setReportId] = useState("");
     const [files, setFiles] = useState({});
     const [filesCount, setFilesCount] = useState(0);
+    const [errorLevels, setErrorLevels] = useState([]);
+    const [reportStatus, setReportStatus] = useState("");
 
     // const [visible, setVisible] = useState(false);
     // const [selectedVulnerability, setSelectedVulnerability] = useState(null);
@@ -106,6 +108,8 @@ const ViewReports = () => {
             setReportId(response.data.report_id);
             setFiles(response.data.files);
             setFilesCount(response.data.filesCount);
+            setErrorLevels(response.data.errorLevels);
+            setReportStatus(response.data.reportStatus);
 
             showSuccessNotification(response.data.message);
             setVisibleDelete(true);
@@ -189,6 +193,8 @@ const ViewReports = () => {
                         files={files}
                         reportId={reportId}
                         filesCount={filesCount}
+                        errorLevels={errorLevels}
+                        reportStatus={reportStatus}
                         selectedComputer={selectedComputer}
                         selectedDate={selectedDate}
                         selectedReportNumber={selectedReportNumber}

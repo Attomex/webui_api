@@ -71,9 +71,19 @@ class ViewController extends Controller
                 'files_count' => $fileCount,
             ]);
 
+            $errorLevels = [
+                'critical' => $report->total_critical,
+                'high' => $report->total_high,
+                'medium' => $report->total_medium,
+                'low' => $report->total_low,
+            ];
+
+
             return response()->json([
                 'report_id' => $report->id,
                 'files' => array_values($files),
+                'errorLevels' => $errorLevels,
+                'reportStatus' => $report->status,
                 'filesCount' => $fileCount,
                 'message' => 'Успешно получены файлы',
             ]);

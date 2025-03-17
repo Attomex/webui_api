@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Table, Input, Button, Space, ConfigProvider, Modal } from "antd";
+import { Table, Input, Button, Space, ConfigProvider, Modal, Tag } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import "antd/dist/reset.css";
@@ -8,6 +8,8 @@ const FileTable = ({
     files,
     reportId,
     filesCount,
+    errorLevels,
+    reportStatus,
     selectedComputer,
     selectedDate,
     selectedReportNumber,
@@ -229,22 +231,92 @@ const FileTable = ({
     // Преобразование данных в массив
     const fileArray = Object.keys(files).map((key) => files[key]);
 
+    const toUpperFirstLetter = (str) => {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    };
+
     return (
         <div style={{ marginLeft: "10px" }}>
-            <p>
-                Идентификатор компьютера:{" "}
-                <span style={{ fontWeight: "bold" }}>{selectedComputer}</span>
-            </p>
-            <p>
-                Дата отчёта:{" "}
-                <span style={{ fontWeight: "bold" }}>{selectedDate}</span>
-            </p>
-            <p>
-                Номер отчёта:{" "}
-                <span style={{ fontWeight: "bold" }}>
-                    {selectedReportNumber}
-                </span>
-            </p>
+            <div
+                style={{
+                    width: "max-content",
+                    border: "1px solid rgb(231, 234, 238)",
+                    padding: "14px",
+                    backgroundColor: "rgb(243, 244, 247)",
+                    borderRadius: "16px",
+                }}
+            >
+                <p>
+                    Статус:{" "}
+                    {reportStatus === "активный" ? (
+                        <Tag color="#55acee">
+                            <span style={{ fontSize: "16px" }}>
+                                {toUpperFirstLetter(reportStatus)}
+                            </span>
+                        </Tag>
+                    ) : (
+                        <Tag color="grey">
+                            <span style={{ fontSize: "16px" }}>
+                                {toUpperFirstLetter(reportStatus)}
+                            </span>
+                        </Tag>
+                    )}
+                </p>
+                <p>
+                    Идентификатор компьютера:{" "}
+                    <span style={{ fontWeight: "bold" }}>
+                        {selectedComputer}
+                    </span>
+                </p>
+                <p>
+                    Дата отчёта:{" "}
+                    <span style={{ fontWeight: "bold" }}>{selectedDate}</span>
+                </p>
+                <p>
+                    Номер отчёта:{" "}
+                    <span style={{ fontWeight: "bold" }}>
+                        {selectedReportNumber}
+                    </span>
+                </p>
+                <div>
+                    Уязвимостей по уровням:{" "}
+                    {Object.entries(errorLevels).map(([level, count]) => {
+                        let tagColor;
+                        switch (level) {
+                            case "critical":
+                                tagColor = "red";
+                                level = "Критических";
+                                break;
+                            case "high":
+                                tagColor = "orange";
+                                level = "Высоких";
+                                break;
+                            case "medium":
+                                tagColor = "yellow";
+                                level = "Средних";
+                                break;
+                            case "low":
+                                tagColor = "green";
+                                level = "Низких";
+                                break;
+                            default:
+                                tagColor = "gray"; // На случай, если уровень неизвестен
+                                level = "Непредвиденных";
+                        }
+
+                        return (
+                            <Tag
+                                key={level}
+                                color={tagColor}
+                                style={{ color: "black" }}
+                            >
+                                {count} {level}
+                            </Tag>
+                        );
+                    })}
+                </div>
+            </div>
+
             <h2>Файлы с уязвимостями (было найдено {filesCount} файлов)</h2>
             {/* Таблица Ant Design */}
             <ConfigProvider

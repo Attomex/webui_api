@@ -13,6 +13,7 @@ const DownloadModal = ({
     selectedComputer,
     selectedDate,
     selectedReportNumber,
+    errorLevels
 }) => {
     const [loading, setLoading] = useState(false); // Состояние для отслеживания загрузки
 
@@ -53,6 +54,7 @@ const DownloadModal = ({
                 selectedComputer,
                 selectedReportNumber,
                 selectedDate,
+                errorLevels,
                 response.data.vulnerabilities // Данные отчёта
             );
 
