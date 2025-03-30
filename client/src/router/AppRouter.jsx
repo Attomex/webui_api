@@ -7,7 +7,6 @@ import { AuthProvider } from "../pages/Admin/context/AuthContext";
 const AppRouter = () => {
     return (
         <Routes>
-            <Route path="/*" element={<Navigate to="/" replace />} />
             <Route path="/" element={<Main />} />
 
             <Route
@@ -18,6 +17,7 @@ const AppRouter = () => {
                     </AuthProvider>
                 }
             />
+            <Route path="/*" element={<Navigate to={"/404"} />} />
         </Routes>
     );
 };

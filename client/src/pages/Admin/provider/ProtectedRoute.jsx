@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Spinner } from "react-bootstrap";
 import Cookies from "js-cookie";
 import { useAuth } from "../context/AuthContext";
 import LoadingSpinner from "../shared/LoadingSpinner/LoadingSpinner";
@@ -43,26 +44,4 @@ const ProtectedRoute = ({ children }) => {
 };
 
 export default ProtectedRoute;
-// Проверка статуса, но скорее всего это не нужно, так как есть
-// axios interceptors и там все проверяется
 
-// const checkAuth = async () => {
-//     try {
-//         const response = await api().get("/api/auth/check");
-//         if (response.data.success === true) {
-//             setIsAuth(true);
-//         } else {
-//             logOut();
-//             setIsAuth(false);
-//         }
-//     } catch (error) {
-//         console.error(
-//             "Error checking auth status:",
-//             error.response.data.error
-//         );
-//         setIsAuth(false);
-//     } finally {
-//         setLoading(false);
-//     }
-// };
-// checkAuth();
