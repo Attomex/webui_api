@@ -14,6 +14,18 @@ class LogController extends Controller
         $this->loggerService = $loggerService;
     }
 
+    public function sendLog(Request $request)
+    {   
+        \Log::info($request);
+        $user = $request->user()->email;
+        try{
+            $this->loggerService->log($request->action, $user, $request->message, $request->level);
+            return response()->json(['message' => 'Лог успешно сохранен'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Произошла ошибка при сохранении лога'], 500);
+        }        
+    }
+
     public function getAvailableDateRanges()
     {
         $dateRanges = $this->loggerService->getAvailableDateRanges();

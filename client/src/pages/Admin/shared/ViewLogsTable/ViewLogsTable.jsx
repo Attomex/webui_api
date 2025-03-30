@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { Table, Input, Button, Space, ConfigProvider, Tag } from "antd";
-import { SearchOutlined, EyeOutlined, FilterOutlined } from "@ant-design/icons";
+import { SearchOutlined, EyeOutlined, FilterOutlined, BugOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import "antd/dist/reset.css";
 import LogDetailsModal from "../LogDetailsModal/LogDetailsModal";
@@ -151,13 +151,22 @@ const ViewLogs = ({ logs }) => {
                 { text: "Информация", value: "Информация" },
                 { text: "Ошибка", value: "Ошибка" },
                 { text: "Предупреждение", value: "Предупреждение" },
+                { text: "Баг репорт", value: "Баг репорт" },
             ],
             onFilter: (value, record) => record.level === value, // Фильтрация по значению
             render: (level) => {
-                let color = "blue"; // Цвет по умолчанию
-                if (level === "Ошибка") color = "red";
-                if (level === "Предупреждение") color = "orange";
-                return <Tag color={color}>{level}</Tag>; // Отображаем уровень как цветной тег
+                switch (level) {
+                    case "Информация":
+                        return <Tag color="blue">{level}</Tag>;
+                    case "Ошибка":
+                        return <Tag color="red">{level}</Tag>;
+                    case "Предупреждение":
+                        return <Tag color="orange">{level}</Tag>;
+                    case "Баг репорт":
+                        return <Tag icon={<BugOutlined />} color="purple">{level}</Tag>;
+                    default:
+                        return <Tag color="gray">{level}</Tag>;
+                }
             },
         },
         {

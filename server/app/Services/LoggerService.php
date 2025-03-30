@@ -106,12 +106,21 @@ class LoggerService
             // 'emergency' => 'Аварийный',
             // 'alert' => 'Тревога',
             // 'critical' => 'Критический',
+            'bugReport' => 'Баг репорт',
             'error' => 'Ошибка',
             'warning' => 'Предупреждение',
             // 'notice' => 'Уведомление',
             'info' => 'Информация',
             // 'debug' => 'Отладка',
         ];
+
+        // Декодируем $data, если это JSON-строка
+        if (is_string($data)) {
+            $decodedData = json_decode($data, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $data = $decodedData;
+            }
+        }
 
         $logEntry = [
             'level' => $levelTranslations[$level] ?? $level,

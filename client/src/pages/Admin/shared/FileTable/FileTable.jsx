@@ -345,12 +345,11 @@ const FileTable = ({
                         onChange: (page, pageSize) => {
                             setCurrentPageSize((prev) => pageSize);
                             setCurrentPage((prev) => page);
-                            document.documentElement.scrollTop = 0;
+                            window.scrollTo({ top: 0, behavior: "smooth" })
                         },
                     }}
                     rowKey="id"
                     style={{
-                        width: "90%",
                         borderRadius: "10px",
                         border: "1px solid rgb(244, 246, 248)",
                     }}

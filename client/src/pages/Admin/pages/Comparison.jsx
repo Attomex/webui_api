@@ -56,7 +56,7 @@ const Comparison = () => {
         setIsModalOpen(false);
     };
 
-    const handleOk = () => {
+    const handleOk = async () => {
         setDownloadingComparison(true);
         downloadResultComparisonExcel(
             selectedComputer,
@@ -65,9 +65,26 @@ const Comparison = () => {
             selectedNewReportNumber,
             selectedOldReportNumber,
             data
-        )
+        );
         handleCancel();
         setDownloadingComparison(false);
+        // Формируем данные для лога
+        const logData = {
+            Сообщение: "Скачивание сравнения отчётов",
+            "Идентификатор компьютера": selectedComputer,
+            "Дата нового отчёта": selectedNewDate,
+            "Номер нового отчёта": selectedNewReportNumber,
+            "Дата старого отчёта": selectedOldDate,
+            "Номер старого отчёта": selectedOldReportNumber,
+        };
+
+        const formData = new FormData();
+        formData.append("message", JSON.stringify(logData)); // Важно: передаём строку JSON!
+        formData.append("level", "info");
+        formData.append("action", "Скачивание");
+
+        // Отправка лога
+        await api().post("/api/logs/send", formData);
     };
 
     useEffect(() => {
@@ -228,12 +245,16 @@ const Comparison = () => {
                 />
                 {Object.keys(data).length > 0 && (
                     <Button
-                        style={{ marginTop: "10px", marginBottom: "10px", marginLeft: "10px" }}
+                        style={{
+                            marginTop: "10px",
+                            marginBottom: "10px",
+                            marginLeft: "10px",
+                        }}
                         as="input"
                         type="button"
                         value="Скачать результаты сравнения"
-                        onClick={showModal}>
-                    </Button>
+                        onClick={showModal}
+                    ></Button>
                 )}
             </form>
             {comparisonStatus && (

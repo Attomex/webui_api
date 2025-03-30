@@ -40,6 +40,7 @@ Route::prefix('admin')->middleware('jwt.auth')->group(function () {
 Route::prefix('logs')->middleware('jwt.auth')->group(function () {
     Route::get('/date-ranges', [LogController::class, 'getAvailableDateRanges']);
     Route::get('/by-date', [LogController::class, 'getLogsByDateRanges']);
+    Route::post('/send', [LogController::class, 'sendLog']);
 });
 
 Route::prefix('auth')->group(function () {
