@@ -1,41 +1,36 @@
 import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Table } from "antd";
+import { Button, Table, ConfigProvider, Spin } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 import api from "../../../utils/api";
 import showErrorNotification from "../shared/Notification/Notification";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import CreateAdminModal from "../shared/CreateAdminModal/CreateAdminModal";
 
 const CreateAdmin = () => {
-    const [form] = Form.useForm();
     const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [modalOpened, setModalOpened] = useState(false);
+
+    const getUsers = async () => {
+        try {
+            const response = await api().get("/api/admin/createadmin");
+            setUsers(response.data);
+        } catch (error) {
+            // console.error("Error loading users", error);
+            showErrorNotification("Ошибка при загрузке пользователей.");
+        }
+    };
 
     useEffect(() => {
-        const getUsers = async () => {
-            try {
-                const response = await api().get("/api/admin/createadmin");
-                setUsers(response.data);
-            } catch (error) {
-                // console.error("Error loading users", error);
-                showErrorNotification("Ошибка при загрузке пользователей.");
-            }
-        };
         getUsers();
     }, []);
 
-    const onFinish = async (values) => {
-        setLoading(true);
-        try {
-            await api().post("/api/admin/createadmin", values);
-            alert("Администратор успешно создан.");
-            form.resetFields();
-            window.location.reload();
-        } catch (error) {
-            // console.error("Error creating admin", error);
-            showErrorNotification("Ошибка при создании администратора.");
-        } finally {
-            setLoading(false);
-        }
+    const showModal = () => {
+        setModalOpened(true);
+    };
+
+    const handleCancel = () => {
+        setModalOpened(false);
     };
 
     const handleDelete = (userId) => {
@@ -99,116 +94,71 @@ const CreateAdmin = () => {
 
     return (
         <div style={{ marginLeft: "10px" }}>
-            <h2>Создание нового администратора</h2>
-            <div style={{ width: "600px", border: "1px solid rgb(231, 234, 238)", padding: "14px", backgroundColor: "rgb(243, 244, 247)", borderRadius: "16px" }}>
-                <Form
-                    form={form}
-                    name="create_admin"
-                    onFinish={onFinish}
-                    layout="vertical"
-                    autoComplete="off"
-                    onSubmit={(e) => e.preventDefault()}
+            <h2>Управление администраторами</h2>
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    marginBottom: 16,
+                }}
+            >
+                <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={showModal}
                 >
-                    <Form.Item
-                        label="Имя"
-                        name="name"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Пожалуйста, введите имя!",
-                            },
-                        ]}
-                    >
-                        <Input placeholder="Введите имя" />
-                    </Form.Item>
-
-                    <Form.Item
-                        label="Почта"
-                        name="email"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Пожалуйста, введите почту!",
-                            },
-                            {
-                                type: "email",
-                                message: "Некорректный формат почты!",
-                            },
-                        ]}
-                    >
-                        <Input placeholder="Введите почту" />
-                    </Form.Item>
-
-                    <Form.Item
-                        label="Пароль"
-                        name="password"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Пожалуйста, введите пароль!",
-                            },
-                            {
-                                min: 8,
-                                message:
-                                    "Пароль должен содержать не менее 8 символов!",
-                            },
-                        ]}
-                    >
-                        <Input.Password placeholder="Введите пароль" />
-                    </Form.Item>
-
-                    <Form.Item
-                        label="Подтверждение пароля"
-                        name="password_confirmation"
-                        dependencies={["password"]}
-                        rules={[
-                            {
-                                required: true,
-                                message: "Пожалуйста, подтвердите пароль!",
-                            },
-                            ({ getFieldValue }) => ({
-                                validator(_, value) {
-                                    if (
-                                        !value ||
-                                        getFieldValue("password") === value
-                                    ) {
-                                        return Promise.resolve();
-                                    }
-                                    return Promise.reject(
-                                        new Error("Пароли не совпадают!")
-                                    );
-                                },
-                            }),
-                        ]}
-                    >
-                        <Input.Password placeholder="Подтвердите пароль" />
-                    </Form.Item>
-
-                    <Form.Item>
-                        <Button
-                            type="primary"
-                            htmlType="submit"
-                            loading={loading}
-                            block
-                        >
-                            Зарегистрировать нового администратора
-                        </Button>
-                    </Form.Item>
-                </Form>
+                    Зарегистрировать нового работника
+                </Button>
             </div>
 
-            {users.length > 0 && (
+            {users.length > 0 ? (
                 <div>
-                    <h1>Список администраторов</h1>
-                    <Table
-                        dataSource={users}
-                        columns={columns}
-                        rowKey="id"
-                        pagination={false}
-                        style={{ marginTop: "20px" }}
-                    />
+                    <ConfigProvider
+                        theme={{
+                            components: {
+                                Table: {
+                                    cellFontSize: 16,
+                                    colorBgContainer: "rgb(243, 244, 247)",
+                                    borderColor: "rgb(204, 204, 204)",
+                                },
+                            },
+                        }}
+                    >
+                        <Table
+                            dataSource={users}
+                            columns={columns}
+                            rowKey="id"
+                            pagination={{
+                                defaultPageSize: 10,
+                                showSizeChanger: true,
+                                position: ["bottomRight"],
+                                pageSizeOptions: ["10", "15", "20"],
+                                locale: {
+                                    items_per_page: "/ на странице",
+                                },
+                                onChange: (page, pageSize) => {
+                                    document.documentElement.scrollTop = 0;
+                                },
+                            }}
+                            bordered
+                        />
+                    </ConfigProvider>
                 </div>
+            ) : (
+                <Spin
+                    size="large"
+                    style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        marginTop: 50,
+                    }}
+                />
             )}
+            <CreateAdminModal
+                isModalOpen={modalOpened}
+                handleCancel={handleCancel}
+                getUsers={getUsers}
+            />
         </div>
     );
 };

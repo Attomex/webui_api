@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Validation\Rules;
 use App\Services\LoggerService;
+use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
 {
@@ -101,9 +102,15 @@ class AuthController extends Controller
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
+
+        if (User::where('email', '=', $request->email)->exists()) {
+            return response()->json([
+                'error' => 'Почта уже зарегистрирована',
+            ], Response::HTTP_BAD_REQUEST);
+        }
 
         User::create([
             'name' => $request->name,
@@ -117,8 +124,8 @@ class AuthController extends Controller
         ]);
 
         return response()->json([
-            'success' => true
-        ], 200);
+            'message' => 'Администратор успешно зарегистрирован',
+        ]);
     }
 
     public function getUsers()
