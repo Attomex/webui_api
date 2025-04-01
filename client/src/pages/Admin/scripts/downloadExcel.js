@@ -32,12 +32,18 @@ const errorLevelToPlural = {
     Низкий: "Низкие",
 };
 
+const toUpperFirstLetter = (str) => {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
 const downloadExcel = (
+    user,
     selectedErrorLevels,
     selectedColumns,
     selectedComputer,
     selectedReportNumber,
     selectedDate,
+    statusReport,
     errorLevels,
     vulnerabilities
 ) => {
@@ -59,12 +65,19 @@ const downloadExcel = (
     // Создаем новую книгу
     const workbook = new ExcelJS.Workbook();
 
+    const status = toUpperFirstLetter(statusReport);
+
     // Добавляем информацию о компьютере на отдельный лист
     const infoSheet = workbook.addWorksheet("Информация");
     infoSheet.columns = [
         { header: "Параметр", key: "param", width: 30 },
         { header: "Значение", key: "value", width: 40 },
     ];
+    infoSheet.addRow(["Статус отчёта", status]);
+    infoSheet.addRow([]);
+    infoSheet.addRow(["Почта администратора", user.email]);
+    infoSheet.addRow(["Имя администратора", user.name]);
+    infoSheet.addRow([]);
     infoSheet.addRow(["Идентификатор компьютера", selectedComputer]);
     infoSheet.addRow(["Номер отчёта", selectedReportNumber]);
     infoSheet.addRow(["Дата формирования отчёта", formattedSelectedDate]);

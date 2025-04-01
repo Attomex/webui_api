@@ -74,9 +74,19 @@ class DownloadController extends Controller
                 'report_date' => $reportDate,
                 'report_number' => $reportNumber
             ]);
+
+            $errorLevels = [
+                'critical' => $report->total_critical,
+                'high' => $report->total_high,
+                'medium' => $report->total_medium,
+                'low' => $report->total_low,
+            ];
+
             // Возвращаем данные в структурированном виде
             return response()->json([
                 'vulnerabilities' => $vulnerabilitiesData,
+                'errorLevels' => $errorLevels,
+                'statusReport' => $report->status,
                 'message' => 'Успешно получены данные отчёта',
             ]);
         } catch (\Exception $e) {

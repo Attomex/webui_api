@@ -11,6 +11,8 @@ import {
     useReportNumberOptions,
 } from "../hooks/useReportsData";
 
+import { useAuth } from "../context/AuthContext";
+
 import LoadingSpinner from "../shared/LoadingSpinner/LoadingSpinner";
 import SelectField from "../shared/SelectField/SelectField";
 import DownloadModal from "../shared/DownloadModal/DownloadModal";
@@ -21,6 +23,8 @@ import {
 import FileTable from "../shared/FileTable/FileTable";
 
 const DownloadReport = () => {
+    const { user } = useAuth();
+
     const [selectedComputer, setSelectedComputer] = useState("");
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedReportNumber, setSelectedReportNumber] = useState("");
@@ -267,6 +271,7 @@ const DownloadReport = () => {
                 selectedDate={selectedDate}
                 selectedReportNumber={selectedReportNumber}
                 errorLevels={errorLevels}
+                user={user}
             />
         </div>
     );

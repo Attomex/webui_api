@@ -10,6 +10,7 @@ import {
     useReportNumberOptions,
 } from "../hooks/useReportsData";
 import LoadingSpinner from "../shared/LoadingSpinner/LoadingSpinner";
+import { useAuth } from "../context/AuthContext";
 
 import api from "../../../utils/api";
 import SelectField from "../shared/SelectField/SelectField";
@@ -21,6 +22,9 @@ import {
 } from "../shared/Notification/Notification";
 
 const ViewReports = () => {
+    const { user } = useAuth();
+    const role = user?.role;
+
     const [selectedComputer, setSelectedComputer] = useState("");
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedReportNumber, setSelectedReportNumber] = useState("");
@@ -168,7 +172,7 @@ const ViewReports = () => {
                         value="Посмотреть отчёт"
                         disabled={loading}
                     />
-                    {visibleDelete && (
+                    {visibleDelete && role === "SuperAdmin" && (
                         <>
                             <Button
                                 variant="danger"

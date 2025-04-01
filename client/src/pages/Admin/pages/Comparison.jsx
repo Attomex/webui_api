@@ -7,6 +7,8 @@ import downloadResultComparisonExcel from "../scripts/downloadResultComparisonEx
 
 import { Modal } from "antd";
 
+import { useAuth } from "../context/AuthContext";
+
 import LoadingSpinner from "../shared/LoadingSpinner/LoadingSpinner";
 
 import { useComputerOptions } from "../hooks/useReportsData";
@@ -19,14 +21,21 @@ import {
 } from "../shared/Notification/Notification";
 
 const Comparison = () => {
+    const { user } = useAuth();
+
     // Базовые состояния
     const [selectedComputer, setSelectedComputer] = useState("");
     //Даты новые и старые
     const [selectedNewDate, setSelectedNewDate] = useState("");
     const [selectedOldDate, setSelectedOldDate] = useState("");
+    
     // Номера отчётов новые и старые
     const [selectedNewReportNumber, setSelectedNewReportNumber] = useState("");
     const [selectedOldReportNumber, setSelectedOldReportNumber] = useState("");
+
+    // Количество уязвимостей новых и старых
+    const [errorLevelsNew, setErrorLevelsNew] = useState([]);
+    const [errorLevelsOld, setErrorLevelsOld] = useState([]);
 
     const [data, setData] = useState({});
 
@@ -59,11 +68,14 @@ const Comparison = () => {
     const handleOk = async () => {
         setDownloadingComparison(true);
         downloadResultComparisonExcel(
+            user,
             selectedComputer,
             selectedNewDate,
             selectedOldDate,
             selectedNewReportNumber,
             selectedOldReportNumber,
+            errorLevelsNew,
+            errorLevelsOld,
             data
         );
         handleCancel();
@@ -150,6 +162,8 @@ const Comparison = () => {
             });
             setData(response.data);
             showSuccessNotification(response.data.message);
+            setErrorLevelsNew(response.data.errorLevelsNew);
+            setErrorLevelsOld(response.data.errorLevelsOld);
         } catch (error) {
             showErrorNotification(error.response.data.error);
         } finally {

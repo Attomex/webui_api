@@ -144,10 +144,26 @@ class CompareReportsController extends Controller
             'Номер старого отчёта' => $oldReportNumber
         ]);
 
+        $errorLevelsNew = [
+            'critical' => $newReport->total_critical,
+            'high' => $newReport->total_high,
+            'medium' => $newReport->total_medium,
+            'low' => $newReport->total_low,
+        ];
+
+        $errorLevelsOld = [
+            'critical' => $oldReport->total_critical,
+            'high' => $oldReport->total_high,
+            'medium' => $oldReport->total_medium,
+            'low' => $oldReport->total_low,
+        ];
+
         return response()->json([
             'appeared_vulnerabilities' => array_values($appearedVulnerabilities),
             'remaining_vulnerabilities' => array_values($remainingVulnerabilities),
             'fixed_vulnerabilities' => array_values($fixedVulnerabilities),
+            'errorLevelsNew' => $errorLevelsNew,
+            'errorLevelsOld' => $errorLevelsOld, 
             'message' => 'Успешно сравнены отчёты',
         ]);
     }

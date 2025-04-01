@@ -32,7 +32,12 @@ import { logOut } from "../../../utils/auth";
 
 import { Button } from "react-bootstrap";
 
+import { useAuth } from "../context/AuthContext";
+
 const AppHeader = () => {
+    const { user } = useAuth();
+    const name = user?.name;
+
     const headerRef = useRef();
     // const { colorMode, setColorMode } = useColorModes(
     //     "coreui-free-react-admin-template-theme"
@@ -50,7 +55,7 @@ const AppHeader = () => {
     // }, []);
 
     return (
-        <CHeader position="sticky" className="mb-4 p-0" ref={headerRef}>
+        <CHeader position="sticky" className="mb-4 p-0  " ref={headerRef}>
             <CContainer className="border-bottom px-4" fluid>
                 <CHeaderNav className="d-none d-md-flex">
                     <CNavItem>
@@ -131,6 +136,9 @@ const AppHeader = () => {
                             </CDropdownItem>
                         </CDropdownMenu>
                     </CDropdown> */}
+                    <div style={{ display: "flex", alignItems: "center", fontSize: "16px" }}>
+                        Добро пожаловать, {name}! 
+                    </div>
                     <li className="nav-item py-1">
                         <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
                     </li>

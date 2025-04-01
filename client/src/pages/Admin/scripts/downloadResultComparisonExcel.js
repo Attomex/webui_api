@@ -27,11 +27,14 @@ function formatDate(dateString, separator = ".") {
 }
 
 const downloadResultComparisonExcel = (
+    user,
     selectedComputer,
     selectedNewDate,
     selectedOldDate,
     selectedNewReportNumber,
     selectedOldReportNumber,
+    errorLevelsNew,
+    errorLevelsOld,
     data
 ) => {
     let Date_now = getCurrentDate();
@@ -49,6 +52,36 @@ const downloadResultComparisonExcel = (
         "Ссылки на файлы": 120,
     };
 
+    const totalErrorLevelsNew = errorLevelsNew.critical + errorLevelsNew.high + errorLevelsNew.medium + errorLevelsNew.low;
+    const totalErrorLevelsOld = errorLevelsOld.critical + errorLevelsOld.high + errorLevelsOld.medium + errorLevelsOld.low;
+
+    const changesErrorLevels = [
+        errorLevelsNew.critical - errorLevelsOld.critical,
+        errorLevelsNew.high - errorLevelsOld.high,
+        errorLevelsNew.medium - errorLevelsOld.medium,
+        errorLevelsNew.low - errorLevelsOld.low,
+    ];
+
+    const dataErrorLevels = [
+        [
+          "Уязвимостей в новом отчёте",
+          errorLevelsNew.critical,
+          errorLevelsNew.high,
+          errorLevelsNew.medium,
+          errorLevelsNew.low,
+          totalErrorLevelsNew,
+        ],
+        [
+          "Уязвимостей в старом отчёте",
+          errorLevelsOld.critical,
+          errorLevelsOld.high,
+          errorLevelsOld.medium,
+          errorLevelsOld.low,
+          totalErrorLevelsOld,
+        ],
+        ["Изменения", ...changesErrorLevels],
+      ];
+
     // Создаем новую книгу
     const workbook = new ExcelJS.Workbook();
 
@@ -56,15 +89,66 @@ const downloadResultComparisonExcel = (
     const infoSheet = workbook.addWorksheet("Информация");
     // Устанавливаем ширину столбцов для листа "Информация"
     infoSheet.columns = [
-        { header: "Параметр", key: "param", width: 30 },
-        { header: "Значение", key: "value", width: 40 },
+        { key: 'A', width: 30 },
+        { key: 'B', width: 40 },
     ];
+    infoSheet.addRow(["Параметр", "Значение"]);
+    infoSheet.addRow(["Почта администратора", user.email]);
+    infoSheet.addRow(["Имя администратора", user.name]);
+    infoSheet.addRow([]);
     infoSheet.addRow(["Идентификатор компьютера", selectedComputer]);
+    infoSheet.addRow([]);
     infoSheet.addRow(["Дата нового отчёта", formattedNewDate]);
     infoSheet.addRow(["Дата старого отчёта", formattedOldDate]);
+    infoSheet.addRow([]);
     infoSheet.addRow(["Номер нового отчёта", selectedNewReportNumber]);
     infoSheet.addRow(["Номер старого отчёта", selectedOldReportNumber]);
+    infoSheet.addRow([]);
     infoSheet.addRow(["Дата загрузки результатов", Date_now]);
+    infoSheet.addRow([]);
+    // infoSheet.addRow(["", "Критических", "Высоких", "Средних", "Низких", "Всего"]);
+    // infoSheet.addRow([
+    //     "Уязвимостей в новом отчёте",
+    //     errorLevelsNew.critical,
+    //     errorLevelsNew.high,
+    //     errorLevelsNew.medium,
+    //     errorLevelsNew.low,
+    //     totalErrorLevelsNew,
+    // ]);
+    // infoSheet.addRow([
+    //     "Уязвимостей в старом отчёте",
+    //     errorLevelsOld.critical,
+    //     errorLevelsOld.high,
+    //     errorLevelsOld.medium,
+    //     errorLevelsOld.low,
+    //     totalErrorLevelsOld,
+    // ]);
+    // infoSheet.addRow(["Изменения", ...changesErrorLevels]);
+
+    infoSheet.addTable({
+        name: 'InfoErrorLevels', // Имя таблицы (опционально)
+        ref: 'D1', 
+        headerRow: true, // Показывать заголовок
+        totalsRow: false, // Итоговая строка (не нужна)
+        style: {
+          theme: 'TableStyleMedium9', // Встроенный стиль Excel (можно кастомный)
+          showRowStripes: true, // Чередование строк (true/false)
+        },
+        columns: [
+          { name: 'Описание' },
+          { name: 'Критические' },
+          { name: 'Высокие' },
+          { name: 'Средние' },
+          { name: 'Низкие' },
+          { name: 'Всего' },
+        ],
+        rows: dataErrorLevels,
+    });
+
+    infoSheet.getColumn('D').width = 30;
+    ['E', 'F', 'G', 'H'].forEach((col) => infoSheet.getColumn(col).width = 13);
+    infoSheet.getColumn('I').width = 10;
+
 
     // 2. Лист "Появившиеся уязвимости"
     const appearedSheet = workbook.addWorksheet("Появившиеся уязвимости");

@@ -44,6 +44,7 @@ class AuthController extends Controller
         $customClaims = [
             'user_id' => $user->id,
             'name' => $user->name,
+            'email' => $user->email,
             'role' => $user->role,
         ];
 

@@ -13,6 +13,7 @@
     "antd": "^5.24.2",
     "axios": "^1.7.9",
     "bootstrap": "^5.3.3",
+    "chart.js": "^4.4.8",
     "cra-template": "1.2.0",
     "dayjs": "^1.11.13",
     "exceljs": "^4.4.0",

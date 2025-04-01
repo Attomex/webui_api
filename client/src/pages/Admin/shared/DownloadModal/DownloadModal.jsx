@@ -13,7 +13,7 @@ const DownloadModal = ({
     selectedComputer,
     selectedDate,
     selectedReportNumber,
-    errorLevels
+    user
 }) => {
     const [loading, setLoading] = useState(false); // Состояние для отслеживания загрузки
 
@@ -49,12 +49,14 @@ const DownloadModal = ({
 
             // // Передаем данные в функцию downloadExcel
             downloadExcel(
+                user,
                 selectedErrorLevels,
                 selectedColumns,
                 selectedComputer,
                 selectedReportNumber,
                 selectedDate,
-                errorLevels,
+                response.data.statusReport,
+                response.data.errorLevels,
                 response.data.vulnerabilities // Данные отчёта
             );
 
