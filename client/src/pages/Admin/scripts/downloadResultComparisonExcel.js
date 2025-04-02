@@ -45,6 +45,7 @@ const downloadResultComparisonExcel = (
     const columnWidths = {
         "Идентификатор уязвимости": 18,
         "Уровень ошибки": 16,
+        "CPE": 25,
         "Название уязвимости": 30,
         "Описание": 80,
         "Рекомендации": 50,
@@ -184,6 +185,7 @@ const addVulnerabilitiesSheet = (sheet, vulnerabilities, columnWidths) => {
     const headers = [
         "Идентификатор уязвимости",
         "Уровень ошибки",
+        "CPE",
         "Название уязвимости",
         "Описание",
         "Рекомендации",
@@ -204,6 +206,7 @@ const addVulnerabilitiesSheet = (sheet, vulnerabilities, columnWidths) => {
         const rowData = [
             vulnerability.identifiers.join(", "), // Идентификаторы через запятую
             vulnerability.error_level, // Уровень ошибки
+            vulnerability.cpe, // CPE
             vulnerability.name, // Название уязвимости
             vulnerability.description, // Описание
             vulnerability.remediation_measures, // Рекомендации

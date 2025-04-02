@@ -1,24 +1,20 @@
 import React, { useState, useRef } from "react";
 import {
+    Modal,
     Tabs,
     Table,
-    List,
     ConfigProvider,
     Button,
     Tag,
     Space,
+    Descriptions,
+    Typography,
     Input,
 } from "antd";
 import Highlighter from "react-highlight-words";
 import { FilterOutlined, SearchOutlined, EyeOutlined } from "@ant-design/icons";
-import {
-    CModal,
-    CModalHeader,
-    CModalTitle,
-    CModalBody,
-    CModalFooter,
-    CButton,
-} from "@coreui/react";
+
+const { Text, Link } = Typography;
 
 const ERROR_LEVELS = [
     { text: "Критический", value: "Критический" },
@@ -251,100 +247,136 @@ const VulnerabilityTable = ({ data, onShowDetails }) => {
 
 const VulnerabilityDetailsModal = ({ visible, onClose, record }) => {
     if (!record) return null;
-    const columns = [
+    const renderLinks = (links) => {
+        if (!links || links.length === 0) {
+            return <Text type="secondary">Нет ссылок</Text>;
+        }
+
+        return (
+            <ul style={{ paddingLeft: 20, margin: 0 }}>
+                {links.map((link, index) => (
+                    <li key={index}>
+                        <Link
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ fontSize: "16px" }}
+                        >
+                            {link.length > 80
+                                ? `${link.substring(0, 80)}...`
+                                : link}
+                        </Link>
+                    </li>
+                ))}
+            </ul>
+        );
+    };
+
+    const renderErrorLevel = (error_level) => {
+            let color = "";
+            switch (error_level) {
+                case 'Критический':
+                    color = 'red';
+                    break;
+                case 'Высокий':
+                    color = 'orange';
+                    break;
+                case 'Средний':
+                    color = 'yellow';
+                    break;
+                case 'Низкий':
+                    color = 'green';
+                    break;
+                default:
+                    color = 'gray';
+            }
+    
+            return <Tag color={color} style={{ color: "black", fontSize: "14px", fontWeight: "480"  }}>{error_level}</Tag>;
+        }
+
+    const items = [
         {
-            title: "Описание",
-            dataIndex: "description",
-            key: "description",
+            key: "1",
+            label: "Уровень уязвимости",
+            children: renderErrorLevel(record.error_level),
         },
         {
-            title: "Рекомендации",
-            dataIndex: "remediation_measures",
-            key: "remediation_measures",
+            key: "2",
+            label: "Идентификатор",
+            children: record.identifiers,
         },
         {
-            title: "Ссылки на источники",
-            dataIndex: "source_links",
-            key: "source_links",
-            render: (links) => {
-                return (
-                    <List
-                        dataSource={links}
-                        renderItem={(link, index) => (
-                            <>
-                                <strong>•</strong>{" "}
-                                <a
-                                    href={link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    {link}
-                                </a>
-                                <br />
-                            </>
-                        )}
-                    />
-                );
-            },
+            key: "3",
+            label: "CPE",
+            children: record.cpe,
         },
         {
-            title: "Ссылки на файлы",
-            dataIndex: "files",
-            key: "files",
-            render: (files) => {
-                return (
-                    <List
-                        dataSource={files}
-                        renderItem={(file, index) => (
-                            <>
-                                <strong>•</strong> {file}
-                                <br />
-                            </>
-                        )}
-                    />
-                );
-            },
+            key: "4",
+            label: "Ссылка на файл",
+            children: record.source_links,
         },
+        {
+            key: "5",
+            label: "Название",
+            children: record.name,
+        },
+        {
+            key: "6",
+            label: "Описание",
+            children: record.description,
+        },
+        {
+            key: "7",
+            label: "Рекомендации",
+            children: record.remediation_measures,
+        },
+        {
+            key: "8",
+            label: "Ссылки",
+            children: renderLinks(record.source_links),
+        }
     ];
+
     return (
-        <CModal fullscreen scrollable visible={visible} onClose={onClose}>
-            <CModalHeader onClose={onClose}>
-                <CModalTitle>Подробная информация</CModalTitle>
-            </CModalHeader>
-            <CModalBody>
-                <h4>Детали уязвимости</h4>
-                <p>
-                    <strong>Идентификатор уязвимости: </strong>
-                    {record.identifiers}
-                </p>
-                <p>
-                    <strong>Уровень ошибки: </strong>
-                    <Tag color={getLevelColor(record.error_level)}>
-                        {ERROR_LEVELS.find(
-                            (el) => el.value === record.error_level
-                        )?.text || record.error_level}
-                    </Tag>
-                </p>
-                <p>
-                    <strong>Название: </strong>
-                    {record.name}
-                </p>
+        <ConfigProvider
+            theme={{
+                components: {
+                    Descriptions: {
+                        labelBg: "rgba(117, 117, 117, 0.2)",
+                        colorSplit: "rgba(117, 117, 117, 0.25)",
+                        fontSize: 16,
+                    },
+                },
+            }}
+        >
+            <Modal
+                title="Подробная информация об уязвимости"
+                open={visible}
+                onCancel={onClose}
+                width={1100}
+                footer={[<Button onClick={onClose}>Закрыть</Button>]}
+                centered
+                destroyOnClose
+            >
                 {record && (
-                    <Table
-                        columns={columns}
-                        dataSource={[record]}
-                        pagination={false}
+                    <Descriptions
+                        column={1}
                         bordered
-                        rowKey="id"
+                        size="middle"
+                        items={items}
+                        style={{
+                            borderRadius: "16px",
+                            overflow: "hidden",
+                        }}
+                        labelStyle={{
+                            color: "black",
+                            width: "18%",
+                            padding: "10px",
+                        }}
                     />
                 )}
-            </CModalBody>
-            <CModalFooter>
-                <CButton color="secondary" onClick={onClose}>
-                    Закрыть
-                </CButton>
-            </CModalFooter>
-        </CModal>
+            </Modal>
+        </ConfigProvider>
     );
 };
 

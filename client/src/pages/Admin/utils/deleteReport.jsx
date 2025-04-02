@@ -17,12 +17,10 @@ export const handleDeleteReport = async (
             },
         });
         handleCloseModal();
-        alert(response.data.message);
-        window.location.reload(true);
+        showErrorNotification(response.data.message);
     } catch (error) {
         showErrorNotification(
-            error.response?.data?.error || "An error occurred"
+            error.response?.data?.error || "Неизвестная ошибка"
         );
-        console.log(error);
     }
 };

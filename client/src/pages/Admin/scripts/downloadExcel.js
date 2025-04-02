@@ -55,8 +55,9 @@ const downloadExcel = (
     const columnWidths = {
         "Уровень ошибки": 16,
         "Идентификатор уязвимости": 26,
+        "CPE": 25,
         "Название уязвимости": 30,
-        Описание: 40,
+        "Описание": 40,
         "Возможные меры по устранению": 50,
         "Ссылки на источники": 60,
         "Ссылки на файлы": 60,
@@ -130,6 +131,7 @@ const downloadExcel = (
                     return vulnerability.error_level;
                 if (column === "Идентификатор уязвимости")
                     return vulnerability.identifiers.join(", "); // Идентификаторы через запятую
+                if (column === "CPE") return vulnerability.cpe;
                 if (column === "Название уязвимости") return vulnerability.name;
                 if (column === "Описание") return vulnerability.description;
                 if (column === "Возможные меры по устранению")

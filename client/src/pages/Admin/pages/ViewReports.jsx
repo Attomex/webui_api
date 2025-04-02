@@ -56,13 +56,24 @@ const ViewReports = () => {
         document.title = "Просмотр отчетов";
     }, []);
 
-    const handleDelete = () => {
-        handleDeleteReport(
+    const handleDelete = async () => {
+        await handleDeleteReport(
             selectedComputer,
             selectedReportNumber,
             selectedDate,
             handleCloseModal
         );
+
+        setVisibleDelete(false);
+        setFiles({});
+        setSelectedReportNumber("");
+        setSelectedDate("");
+        setSelectedComputer("");
+        setFilesCount(0);
+        setErrorLevels([]);
+        setReportStatus("");
+        setReportId("");
+        setShowModalDelete(false);
     };
     // конец удаления отчета
 

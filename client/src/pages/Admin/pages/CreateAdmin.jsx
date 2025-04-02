@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Button, Table, ConfigProvider, Spin } from "antd";
+import { Button, Table, ConfigProvider, Spin, Empty } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import api from "../../../utils/api";
-import showErrorNotification from "../shared/Notification/Notification";
+import { showErrorNotification, showSuccessNotification } from "../shared/Notification/Notification";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
 import CreateAdminModal from "../shared/CreateAdminModal/CreateAdminModal";
@@ -10,14 +10,18 @@ import CreateAdminModal from "../shared/CreateAdminModal/CreateAdminModal";
 const CreateAdmin = () => {
     const [users, setUsers] = useState([]);
     const [modalOpened, setModalOpened] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     const getUsers = async () => {
         try {
+            setLoading(true);
             const response = await api().get("/api/admin/createadmin");
             setUsers(response.data);
         } catch (error) {
-            // console.error("Error loading users", error);
             showErrorNotification("Ошибка при загрузке пользователей.");
+            setUsers([]); // Устанавливаем пустой массив в случае ошибки
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -34,7 +38,6 @@ const CreateAdmin = () => {
     };
 
     const handleDelete = (userId) => {
-        console.log(userId);
         confirmAlert({
             title: "Подтверждение удаления",
             message: "Вы уверены, что хотите удалить этого администратора?",
@@ -45,12 +48,12 @@ const CreateAdmin = () => {
                         await api()
                             .delete(`/api/admin/deleteadmin/${userId}`)
                             .then((response) => {
-                                alert(response.data.message);
+                                showSuccessNotification(response.data.message);
                             })
                             .catch((error) => {
-                                console.error("Error deleting user", error);
+                                showErrorNotification("Не удалось удалить администратора", error);
                             });
-                        window.location.reload(true);
+                        getUsers();
                     },
                 },
                 {
@@ -111,7 +114,16 @@ const CreateAdmin = () => {
                 </Button>
             </div>
 
-            {users.length > 0 ? (
+            {loading ? (
+                <Spin
+                    size="large"
+                    style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        marginTop: 50,
+                    }}
+                />
+            ) : users.length > 0 ? (
                 <div>
                     <ConfigProvider
                         theme={{
@@ -145,14 +157,7 @@ const CreateAdmin = () => {
                     </ConfigProvider>
                 </div>
             ) : (
-                <Spin
-                    size="large"
-                    style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        marginTop: 50,
-                    }}
-                />
+                <Empty description="Администраторов не найдено" />
             )}
             <CreateAdminModal
                 isModalOpen={modalOpened}

@@ -362,6 +362,7 @@ const FileTable = ({
                 open={isModalVisible}
                 width={800}
                 onCancel={() => setIsModalVisible(false)}
+                centered
                 footer={[
                     <Button
                         key="close"

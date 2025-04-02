@@ -51,7 +51,7 @@ class CompareReportsController extends Controller
 
         // Получаем уязвимости для нового отчета
         $newVulnerabilities = ReportVulnerability::where('report_id', $newReport->id)
-            ->with(['vulnerability', 'identifiers', 'files'])
+            ->with(['vulnerability.fileCpe', 'identifiers', 'files'])
             ->get()
             ->flatMap(function ($reportVulnerability, $index) {
                 $vulnerability = $reportVulnerability->vulnerability;
@@ -71,6 +71,7 @@ class CompareReportsController extends Controller
                         'description' => $vulnerability->description,
                         'remediation_measures' => $vulnerability->remediation_measures,
                         'source_links' => explode(',', $vulnerability->source_links),
+                        'cpe' => $vulnerability->fileCpe->cpe,
                         'files' => $files, // Добавляем файлы
                     ];
                 })->keyBy('identifier_id');
@@ -79,7 +80,7 @@ class CompareReportsController extends Controller
 
         // Получаем уязвимости для старого отчета
         $oldVulnerabilities = ReportVulnerability::where('report_id', $oldReport->id)
-            ->with(['vulnerability', 'identifiers', 'files'])
+            ->with(['vulnerability.fileCpe', 'identifiers', 'files'])
             ->get()
             ->flatMap(function ($reportVulnerability, $index) {
                 $vulnerability = $reportVulnerability->vulnerability;
@@ -99,6 +100,7 @@ class CompareReportsController extends Controller
                         'description' => $vulnerability->description,
                         'remediation_measures' => $vulnerability->remediation_measures,
                         'source_links' => explode(',', $vulnerability->source_links),
+                        'cpe' => $vulnerability->fileCpe->cpe,
                         'files' => $files, // Добавляем файлы
                     ];
                 })->keyBy('identifier_id');

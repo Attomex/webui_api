@@ -47,7 +47,7 @@ class DownloadController extends Controller
         try {
             // Получаем все уязвимости через промежуточную таблицу report_vulnerability
             $reportVulnerabilities = ReportVulnerability::where('report_id', $report->id)
-                ->with(['files', 'identifiers', 'vulnerability']) // Загружаем файлы, идентификаторы и сами уязвимости
+                ->with(['files', 'identifiers', 'vulnerability.fileCpe']) // Загружаем файлы, идентификаторы и сами уязвимости
                 ->get();
 
             // Создаем массив для хранения данных
@@ -55,13 +55,16 @@ class DownloadController extends Controller
 
             // Обрабатываем каждую уязвимость
             foreach ($reportVulnerabilities as $reportVuln) {
+                $vulnerability = $reportVuln->vulnerability;
+
                 $vulnerabilityData = [
                     'identifiers' => $reportVuln->identifiers->pluck('number')->toArray(), // Собираем идентификаторы
-                    'error_level' => $reportVuln->vulnerability->error_level,
-                    'name' => $reportVuln->vulnerability->name,
-                    'description' => $reportVuln->vulnerability->description,
-                    'remediation_measures' => $reportVuln->vulnerability->remediation_measures,
-                    'source_links' => explode(',', $reportVuln->vulnerability->source_links),
+                    'error_level' => $vulnerability->error_level,
+                    'name' => $vulnerability->name,
+                    'description' => $vulnerability->description,
+                    'remediation_measures' => $vulnerability->remediation_measures,
+                    'source_links' => explode(',', $vulnerability->source_links),
+                    'cpe' => $vulnerability->fileCpe->cpe,
                     'files' => $reportVuln->files->pluck('file_path')->toArray(), // Собираем пути к файлам
                 ];
 
