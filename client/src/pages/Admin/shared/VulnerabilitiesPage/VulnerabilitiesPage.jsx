@@ -27,8 +27,8 @@ const VulnerabilitiesPage = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const searchInput = useRef(null);
-    const [searchText, setSearchText] = useState("");
-    const [searchedColumn, setSearchedColumn] = useState("");
+    const [searchTexts, setSearchTexts] = useState({}); // Состояние поиска для каждого столбца
+    const [searchedColumns, setSearchedColumns] = useState({}); // Состояние подсветки для каждого столбца
     const [currentPage, setCurrentPage] = useState(1);
     const [currentPageSize, setCurrentPageSize] = useState(15);
 
@@ -53,6 +53,7 @@ const VulnerabilitiesPage = () => {
                 setFile(response.data.file.file_path);
                 setVulnerabilities(response.data.vulnerabilities);
                 showSuccessNotification("Уязвимости успешно загружены");
+                console.log(response.data.vulnerabilities);
             } catch (error) {
                 console.error("Error fetching vulnerabilities:", error);
                 showErrorNotification("Ошибка при получении уязвимостей");
@@ -76,19 +77,22 @@ const VulnerabilitiesPage = () => {
         );
     }
 
-    // Функция для поиска
+    // Обработчик поиска
     const handleSearch = (selectedKeys, confirm, dataIndex) => {
         confirm();
-        setSearchText(selectedKeys[0]);
-        setSearchedColumn(dataIndex);
+        setSearchTexts((prev) => ({ ...prev, [dataIndex]: selectedKeys[0] }));
+        setSearchedColumns((prev) => ({ ...prev, [dataIndex]: true }));
     };
 
-    const handleReset = (clearFilters, confirm) => {
+    // Обработчик сброса поиска
+    const handleReset = (clearFilters, dataIndex, confirm) => {
         clearFilters();
-        setSearchText("");
-        confirm({ closeDropdown: false });
+        setSearchTexts((prev) => ({ ...prev, [dataIndex]: "" }));
+        setSearchedColumns((prev) => ({ ...prev, [dataIndex]: false }));
+        confirm();
     };
 
+    // Функция для получения свойств поиска для столбца
     const getColumnSearchProps = (dataIndex) => ({
         filterDropdown: ({
             setSelectedKeys,
@@ -125,8 +129,14 @@ const VulnerabilitiesPage = () => {
                     <Button
                         onClick={() => {
                             confirm({ closeDropdown: false });
-                            setSearchText(selectedKeys[0]);
-                            setSearchedColumn(dataIndex);
+                            setSearchTexts((prev) => ({
+                                ...prev,
+                                [dataIndex]: selectedKeys[0],
+                            }));
+                            setSearchedColumns((prev) => ({
+                                ...prev,
+                                [dataIndex]: true,
+                            }));
                         }}
                         size="small"
                         style={{ width: 90 }}
@@ -134,7 +144,9 @@ const VulnerabilitiesPage = () => {
                         Фильтр
                     </Button>
                     <Button
-                        onClick={() => handleReset(clearFilters, confirm)}
+                        onClick={() =>
+                            handleReset(clearFilters, dataIndex, confirm)
+                        }
                         size="small"
                         style={{ width: 90 }}
                     >
@@ -154,22 +166,25 @@ const VulnerabilitiesPage = () => {
                 }}
             />
         ),
-        onFilter: (value, record) =>
-            record[dataIndex]
-                .toString()
-                .toLowerCase()
-                .includes(value.toLowerCase()),
-        render: (text) =>
-            searchedColumn === dataIndex ? (
+        onFilter: (value, record) => {
+            const dataString = record[dataIndex]
+                ? record[dataIndex].toString().toLowerCase()
+                : "";
+            return dataString.includes(value.toLowerCase());
+        },
+        render: (text) => {
+            const dataString = text ? text.toString() : "";
+            return searchedColumns[dataIndex] ? (
                 <Highlighter
                     highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-                    searchWords={[searchText]}
+                    searchWords={[searchTexts[dataIndex]]}
                     autoEscape
-                    textToHighlight={text ? text.toString() : ""}
+                    textToHighlight={dataString}
                 />
             ) : (
-                text
-            ),
+                dataString
+            );
+        },
     });
 
     const columns = [
@@ -188,6 +203,12 @@ const VulnerabilitiesPage = () => {
             dataIndex: "identifiers",
             key: "identifiers",
             ...getColumnSearchProps("identifiers"),
+        },
+        {
+            title: "CPE",
+            dataIndex: "cpe",
+            key: "cpe",
+            ...getColumnSearchProps("cpe"),
         },
         {
             title: "Уровень ошибки",
@@ -240,7 +261,6 @@ const VulnerabilitiesPage = () => {
                     }}
                     icon={<EyeOutlined style={{ marginRight: "5px" }} />}
                     onClick={() => {
-                        // console.log(record);
                         openModal(record);
                     }}
                 >
@@ -297,7 +317,6 @@ const VulnerabilitiesPage = () => {
                                     items_per_page: "/ на странице",
                                 },
                                 onChange: (page, pageSize) => {
-                                    // document.body.scrollTop = 0; // For Safari
                                     setCurrentPageSize((prev) => pageSize);
                                     setCurrentPage((prev) => page);
                                     document.documentElement.scrollTop = 0;

@@ -58,6 +58,7 @@ const ViewReports = () => {
 
     const handleDelete = () => {
         handleDeleteReport(
+            selectedComputer,
             selectedReportNumber,
             selectedDate,
             handleCloseModal

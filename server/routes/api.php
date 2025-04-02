@@ -21,6 +21,7 @@ Route::prefix('admin')->middleware('jwt.auth')->group(function () {
     Route::get('/identifierscount', [MainPageAdminController::class, 'identifiersCount']);
 
     Route::get('/view', [ViewController::class, 'getFiles']);
+    Route::delete('/view', [ViewController::class, 'destroy']);
     Route::post('/upload', [UploadController::class, 'store']);
     Route::get('/download', [ViewController::class, 'getFiles']);
     Route::get('/download-report', [DownloadController::class, 'download']);

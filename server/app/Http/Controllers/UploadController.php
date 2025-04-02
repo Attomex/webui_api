@@ -7,6 +7,7 @@ use App\Models\Report;
 use App\Models\Computer;
 use App\Models\ReportVulnerability;
 use App\Models\IdentifierCount;
+use App\Models\FileCpe;
 use DB;
 use Exception;
 use Symfony\Component\HttpFoundation\Response;
@@ -32,6 +33,11 @@ class UploadController extends Controller
 
         try {
             $parsedData = $request->json()->all();
+
+            // Сохранение исходного JSON в файл
+            // $jsonString = json_encode($parsedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            // $filePath = storage_path('\\app\\reports\\' . uniqid() . '.json');
+            // file_put_contents($filePath, $jsonString);
 
             // Проверка на существование отчёта с таким номером
             $existingReport = Report::where('report_number', $parsedData['reportNumber'])->first();
@@ -81,6 +87,13 @@ class UploadController extends Controller
                 // Разделение идентификаторов
                 $identifierNumbers = explode('; ', $vulnerabilityData['id']);
 
+                $fileCpe = null;
+                if(!empty($vulnerabilityData['fileCPE'])) {
+                    foreach ($vulnerabilityData['fileCPE'] as $cpe) {
+                        $fileCpe = FileCpe::firstOrCreate(['cpe' => $cpe]);
+                    }
+                }
+
                 // Проверка и создание уязвимости
                 $vulnerability = Vulnerability::firstOrCreate([
                     'error_level' => $vulnerabilityData['error_level'],
@@ -88,6 +101,7 @@ class UploadController extends Controller
                     'source_links' => implode(',', $vulnerabilityData['references']),
                     'name' => $vulnerabilityData['title'],
                     'remediation_measures' => $vulnerabilityData['measures'],
+                    'file_cpe_id' => $fileCpe?->id,
                 ]);
 
                 // Создание промежуточной записи report_vulnerability

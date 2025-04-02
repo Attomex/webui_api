@@ -73,6 +73,7 @@ const Uploading = () => {
         showSuccessNotification(response.data.message);
       } catch (error) {
         showErrorNotification(error.response.data.message);
+        console.log(error);
       } finally {
         setLoading(false);
         clearFields();

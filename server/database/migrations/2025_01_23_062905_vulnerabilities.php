@@ -18,6 +18,7 @@ return new class extends Migration
             $table->text('source_links');
             $table->text('name');
             $table->text('remediation_measures');
+            $table->foreignId('file_cpe_id')->on('file_cpe')->constrained()->onDelete('cascade');
             $table->timestamps();
 
             $table->unique([
@@ -25,7 +26,8 @@ return new class extends Migration
                 'description',
                 'source_links',
                 'name',
-                'remediation_measures'
+                'remediation_measures',
+                'file_cpe_id'
             ], 'vuln_unique');
         });
     }

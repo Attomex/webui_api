@@ -23,29 +23,47 @@ export async function parseHTML(htmlContent, computerIdentifier) {
 
   const vulnerabilities = [];
   const vulnerabilityFiles = {};
+  let vulnerabilityCounter = 1; // Счетчик для уязвимостей
 
   // Парсинг первой таблицы с уязвимостями
   const vulnerabilitiesTable = doc.querySelector('.vulnerabilitiesTbl');
   const vulnerabilityRows = vulnerabilitiesTable.querySelectorAll('tr');
 
   let currentVulnerabilityId = null;
+  let currentVulnerabilityCounter = null;
 
   vulnerabilityRows.forEach(row => {
     const idElem = row.querySelector('td.bdu');
     if (idElem) {
       currentVulnerabilityId = idElem.innerHTML.replace(/<br\s*\/?>/gi, '; ').trim();
-      vulnerabilityFiles[currentVulnerabilityId] = [];
+      currentVulnerabilityCounter = vulnerabilityCounter++;
+      vulnerabilityFiles[currentVulnerabilityCounter] = {
+        vulnerabilityID: currentVulnerabilityId,
+        cpe: [],
+        files: []
+      };
     }
 
+    const fileCPE = row.querySelector('td[class*="prods"]');
+    if (fileCPE && currentVulnerabilityCounter) {
+      const cpeContent = fileCPE.innerHTML.trim();
+      const cpeInfo = cpeContent 
+          ? cpeContent.split(/<br\s*\/?>/gi).map(cpe => cpe.trim() || 'Неизвестно')
+          : ['Неизвестно'];
+      
+      vulnerabilityFiles[currentVulnerabilityCounter].cpe.push(...cpeInfo);
+    }
+    
     const filesElem = row.querySelector('td.desc.fileslist');
-    if (filesElem && currentVulnerabilityId) {
+    if (filesElem && currentVulnerabilityCounter) {
       const fileInfo = filesElem.innerHTML.trim().split(/<br\s*\/?>/gi).map(file => file.trim());
-      vulnerabilityFiles[currentVulnerabilityId].push(...fileInfo);
+      vulnerabilityFiles[currentVulnerabilityCounter].files.push(...fileInfo);
     }
   });
 
   // Парсинг второй таблицы с деталями уязвимостей
   const tables = doc.querySelectorAll('.vulnerabilitiesListTbl');
+  vulnerabilityCounter = 1; // Сбрасываем счетчик для второй таблицы
 
   tables.forEach(table => {
     const rows = table.querySelectorAll('tr');
@@ -81,14 +99,10 @@ export async function parseHTML(htmlContent, computerIdentifier) {
           }
         });
 
-        const files = vulnerabilityFiles[id] || [];
-
-        // Парсинг путей к файлам из элементов с классом `td.desc.fileslist`
-        // const filesElems = row.querySelectorAll('td.desc.fileslist');
-        // filesElems.forEach(fileElem => {
-        //   const fileInfo = fileElem.textContent.trim().split(/<br\s*\/?>/gi).map(file => file.trim());
-        //   files.push(...fileInfo);
-        // });
+        // Получаем файлы по текущему счетчику
+        const files = vulnerabilityFiles[vulnerabilityCounter]?.files || [];
+        const cpe = vulnerabilityFiles[vulnerabilityCounter]?.cpe || [];
+        vulnerabilityCounter++;
 
         vulnerabilities.push({
           id: id,
@@ -97,6 +111,7 @@ export async function parseHTML(htmlContent, computerIdentifier) {
           description: description,
           measures: measures,
           references: references,
+          fileCPE: cpe,
           files: files
         });
       }
