@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Form, Button, Alert, Container, Card } from "react-bootstrap";
 import { Button as AntdButton } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
@@ -13,9 +13,12 @@ const LoginPage = () => {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation(); 
     const { login } = useAuth(); // Используем контекст
 
     const url = process.env.REACT_APP_API_URL;
+
+    const from = location.state?.from || "/admin";
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -32,7 +35,7 @@ const LoginPage = () => {
                         .then((response) => {
                             const token = response.data.token;
                             login(token); // Используем контекст для входа
-                            navigate("/admin");
+                            navigate(from, { replace: true });
                         })
                         .catch((error) => {
                             setError(error.response.data.error);

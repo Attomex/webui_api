@@ -30,7 +30,7 @@ const api = () => {
     );
 
     api.interceptors.response.use(response => response, error => {
-        if (error.response.status === 401  && error.response.message === 'Token not provided') {
+        if (error.response.status === 401  || error.response.message === 'Token not provided') {
             logOut();
 
             return Promise.reject(error);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom"; // Добавляем useLocation
 import { Spinner } from "react-bootstrap";
 import Cookies from "js-cookie";
 import { useAuth } from "../context/AuthContext";
@@ -7,16 +7,18 @@ import LoadingSpinner from "../shared/LoadingSpinner/LoadingSpinner";
 
 const ProtectedRoute = ({ children }) => {
     const navigate = useNavigate();
+    const location = useLocation(); // Получаем текущий путь
     const [isLoading, setLoading] = useState(true);
-    const { user, logout } = useAuth(); // Используем контекст
+    const { user, logout } = useAuth();
 
     useEffect(() => {
         setLoading(true);
         const token = Cookies.get("auth_token");
 
         if (!token) {
-            logout(); // Если токена нет, разлогиниваем пользователя
-            navigate("/login");
+            logout();
+            // Перенаправляем на /login, но сохраняем текущий URL в state
+            navigate("/login", { state: { from: location.pathname } }); // 🔑 Ключевое изменение
             return;
         }
 
@@ -26,7 +28,7 @@ const ProtectedRoute = ({ children }) => {
         } else {
             setLoading(false);
         }
-    }, [navigate, user, logout]);
+    }, [navigate, user, logout, location.pathname]); // Добавляем location.pathname в зависимости
 
     if (isLoading) {
         return (
@@ -40,8 +42,7 @@ const ProtectedRoute = ({ children }) => {
         );
     }
 
-    return user ? children : navigate("/login"); // Рендерим children только если пользователь авторизован
+    return user ? children : navigate("/login", { state: { from: location.pathname } }); // Также сохраняем путь
 };
 
 export default ProtectedRoute;
-
