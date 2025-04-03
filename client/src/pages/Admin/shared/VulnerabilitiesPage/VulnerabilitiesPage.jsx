@@ -53,7 +53,7 @@ const VulnerabilitiesPage = () => {
                 setFile(response.data.file.file_path);
                 setVulnerabilities(response.data.vulnerabilities);
                 showSuccessNotification("Уязвимости успешно загружены");
-                console.log(response.data.vulnerabilities);
+                // console.log(response.data.vulnerabilities);
             } catch (error) {
                 console.error("Error fetching vulnerabilities:", error);
                 showErrorNotification("Ошибка при получении уязвимостей");

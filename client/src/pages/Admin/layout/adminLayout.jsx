@@ -9,12 +9,12 @@ const AdminLayout = ({ children }) => {
     const [bugReportModal, setBugReportModal] = useState(false);
 
     const showBugReportModal = () => {
-        console.log("open");
+        // console.log("open");
         setBugReportModal(true);
     };
 
     const closeBugReportModal = () => {
-        console.log("close");
+        // console.log("close");
         setBugReportModal(false);
     };
 

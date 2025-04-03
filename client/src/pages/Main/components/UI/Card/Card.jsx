@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { PiSealWarningDuotone } from "react-icons/pi";
 import Card from "react-bootstrap/Card";
 import { Button, Dropdown } from "antd";
@@ -9,16 +10,25 @@ import {
 import c from "./Card.module.css";
 
 const CardM = ({ data }) => {
+    const navigate = useNavigate();
+
     const total_error =
         data.total_critical +
         data.total_high +
         data.total_medium +
         data.total_low;
 
-    const click = (e) =>{
+    const searchByComputer = (e) =>{
       e.preventDefault();
-      console.log('click')
+      const params = `?computer_name=${data.computer.identifier}`
+      navigate(`/admin/search${params}`);
     }
+
+    const searchByReport = (e) =>{
+        e.preventDefault();
+        const params = `?report_number=${data.report_number}&report_date=${data.report_date}`
+        navigate(`/admin/search${params}`);
+      }
 
     const items = [
         {
@@ -32,7 +42,7 @@ const CardM = ({ data }) => {
         {
             key: "2",
             label: (
-                <Button variant="outlined" color="grey" style={{ width: "100%" }} onClick={click}>
+                <Button variant="outlined" color="grey" style={{ width: "100%" }} onClick={searchByComputer}>
                     По компьютеру
                 </Button>
             ),
@@ -41,7 +51,7 @@ const CardM = ({ data }) => {
         {
             key: "3",
             label: (
-                <Button variant="outlined" color="grey" style={{ width: "100%" }} onClick={click}>
+                <Button variant="outlined" color="grey" style={{ width: "100%" }} onClick={searchByReport}>
                     По отчёту
                 </Button>
             ),

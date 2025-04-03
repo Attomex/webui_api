@@ -60,7 +60,7 @@ const DownloadModal = ({
         },
       });
 
-      console.log(response.data)
+      // console.log(response.data)
 
       downloadExcel(
         user,

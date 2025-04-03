@@ -4,6 +4,7 @@ import ButtonLoadMain from './components/UI/Buttons/ButtonLoadMain';
 import Loaded from './components/UI/Loaded/Loaded';
 import LoadingData from './components/UI/LoadingData/LoadingData';
 import api from "../../utils/api"
+import { showErrorNotification } from '../Admin/shared/Notification/Notification';
 
 const Main = () => {
   const [data, setData] = useState([]);
@@ -19,8 +20,7 @@ const Main = () => {
         setLoading(false);
 
       } catch (err) {
-        // setError(err);
-        console.log("...")
+        showErrorNotification(err.response.data.error);
       } finally {
         setLoading(false);
       }
