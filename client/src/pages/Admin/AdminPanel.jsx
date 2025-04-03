@@ -1,4 +1,4 @@
-import React from "react";
+import React, { lazy } from "react";
 import "./scss/style.scss";
 
 import { Route, Routes, Navigate } from "react-router-dom";
@@ -8,8 +8,6 @@ import Comparison from "./pages/Comparison";
 import ViewReports from "./pages/ViewReports";
 import Uploading from "./pages/Uploading";
 import DownloadReport from "./pages/DownloadReport";
-import MainAdmin from "./pages/MainAdmin";
-
 import VulnerabilitiesPage from "./shared/VulnerabilitiesPage/VulnerabilitiesPage";
 
 import AdminLayout from "./layout/adminLayout";
@@ -20,6 +18,9 @@ import ViewLogs from "./pages/ViewLogs";
 // import LoginPage from "./pages/LoginPage";
 import { AuthProvider } from "./context/AuthContext";
 import RoleProtectedRoute from "./provider/RoleProtectedRoute";
+
+const MainAdmin = lazy(() => import("./pages/MainAdmin"));
+// import MainAdmin from "./pages/MainAdmin";
 
 const AdminPanel = () => {
     return (
