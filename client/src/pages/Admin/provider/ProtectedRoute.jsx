@@ -18,7 +18,7 @@ const ProtectedRoute = ({ children }) => {
         if (!token) {
             logout();
             // Перенаправляем на /login, но сохраняем текущий URL в state
-            navigate("/login", { state: { from: location.pathname } }); // 🔑 Ключевое изменение
+            navigate("/login", { state: { from: location.pathname + location.search} }); // 🔑 Ключевое изменение
             return;
         }
 
@@ -28,7 +28,7 @@ const ProtectedRoute = ({ children }) => {
         } else {
             setLoading(false);
         }
-    }, [navigate, user, logout, location.pathname]); // Добавляем location.pathname в зависимости
+    }, [navigate, user, logout, location.pathname, location.search]); // Добавляем location.pathname в зависимости
 
     if (isLoading) {
         return (
