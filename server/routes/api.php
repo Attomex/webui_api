@@ -36,6 +36,7 @@ Route::prefix('admin')->middleware('jwt.auth')->group(function () {
 
     Route::get('/view/vulnerabilities', [ViewController::class, 'getVulnerabilities']);
 
+    Route::get('/search-by-date', [ViewController::class, 'searchByDates']);
 });
 
 Route::prefix('logs')->middleware('jwt.auth')->group(function () {

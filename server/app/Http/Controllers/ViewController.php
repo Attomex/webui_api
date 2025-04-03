@@ -139,7 +139,7 @@ class ViewController extends Controller
             // Обрабатываем каждую уязвимость
             foreach ($reportVulnerabilities as $reportVuln) {
                 $vulnerability = $reportVuln->vulnerability;
-                
+
                 $vulnerabilitiesData[] = [
                     'identifiers' => $reportVuln->identifiers->pluck('number')->implode('; '),
                     'error_level' => $vulnerability->error_level,
@@ -175,57 +175,72 @@ class ViewController extends Controller
         }
     }
 
-    public function destroy(Request $request)
-{
-    $validated = $request->validate([
-        'computer_identifier' => 'required|string',
-        'report_date' => 'required|date',
-        'report_number' => 'required|string'
-    ]);
+    public function searchByDates(Request $request)
+    {
+        $reports = Report::with(['computer' => function ($query) {
+            $query->select('id', 'identifier'); // Укажите нужные поля из модели Computer
+        }])->whereBetween('report_date', [$request->start_date, $request->end_date])->get(['computer_id', 'report_date', 'report_number']);
 
-    DB::transaction(function () use ($validated) {
-        $report = Report::whereHas('computer', function($q) use ($validated) {
-                    $q->where('identifier', $validated['computer_identifier']);
-                })
+        $this->loggerService->log('Поиск', $request->user()->email, [
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date
+        ]);
+
+        return response()->json([
+            'reports' => $reports]);
+    }
+
+    public function destroy(Request $request)
+    {
+        $validated = $request->validate([
+            'computer_identifier' => 'required|string',
+            'report_date' => 'required|date',
+            'report_number' => 'required|string'
+        ]);
+
+        DB::transaction(function () use ($validated) {
+            $report = Report::whereHas('computer', function ($q) use ($validated) {
+                $q->where('identifier', $validated['computer_identifier']);
+            })
                 ->where([
                     ['report_number', $validated['report_number']],
                     ['report_date', $validated['report_date']]
                 ])
                 ->firstOrFail();
 
-        $reportVulnerabilityIds = ReportVulnerability::where('report_id', $report->id)
-            ->pluck('id');
+            $reportVulnerabilityIds = ReportVulnerability::where('report_id', $report->id)
+                ->pluck('id');
 
-        if ($report->status === 'активный') {
-            $identifiers = ReportVulnerabilityIdentifier::whereIn(
-                'report_vulnerability_id',
-                $reportVulnerabilityIds
-            )->with('identifier.identifierCount')->get();
+            if ($report->status === 'активный') {
+                $identifiers = ReportVulnerabilityIdentifier::whereIn(
+                    'report_vulnerability_id',
+                    $reportVulnerabilityIds
+                )->with('identifier.identifierCount')->get();
 
-            $identifiers->groupBy('identifier_id')->each(function ($items, $identifierId) {
-                if ($countRecord = $items->first()->identifier->identifierCount) {
-                    $countRecord->decrement('count', $items->count());
-                    
-                    // if ($countRecord->fresh()->count <= 0) {
-                    //     $countRecord->delete();
-                    // }
-                }
-            });
-        }
+                $identifiers->groupBy('identifier_id')->each(function ($items, $identifierId) {
+                    if ($countRecord = $items->first()->identifier->identifierCount) {
+                        $countRecord->decrement('count', $items->count());
 
-        if ($reportVulnerabilityIds->isNotEmpty()) {
-            ReportVulnerabilityFile::whereIn('report_vulnerability_id', $reportVulnerabilityIds)
-                ->delete();
-            
-            ReportVulnerabilityIdentifier::whereIn('report_vulnerability_id', $reportVulnerabilityIds)
-                ->delete();
-            
-            ReportVulnerability::where('report_id', $report->id)->delete();
-        }
+                        // if ($countRecord->fresh()->count <= 0) {
+                        //     $countRecord->delete();
+                        // }
+                    }
+                });
+            }
 
-        $report->delete();
-    });
+            if ($reportVulnerabilityIds->isNotEmpty()) {
+                ReportVulnerabilityFile::whereIn('report_vulnerability_id', $reportVulnerabilityIds)
+                    ->delete();
 
-    return response()->json(['message' => 'Report deleted successfully'], 200);
-}
+                ReportVulnerabilityIdentifier::whereIn('report_vulnerability_id', $reportVulnerabilityIds)
+                    ->delete();
+
+                ReportVulnerability::where('report_id', $report->id)->delete();
+            }
+
+            $report->delete();
+        });
+
+        return response()->json(['message' => 'Report deleted successfully'], 200);
+    }
 }
