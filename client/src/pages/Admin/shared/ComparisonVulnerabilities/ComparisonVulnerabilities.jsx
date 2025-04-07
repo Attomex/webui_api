@@ -313,7 +313,7 @@ const VulnerabilityDetailsModal = ({ visible, onClose, record }) => {
         {
             key: "4",
             label: "Ссылка на файл",
-            children: record.source_links,
+            children: record.files,
         },
         {
             key: "5",
