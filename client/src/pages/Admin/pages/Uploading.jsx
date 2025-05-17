@@ -121,71 +121,71 @@ const Uploading = () => {
         reader.readAsText(report_file);
     };
 
-    // const handleSubmit = (event) => {
-    //     event.preventDefault();
+    const handleSubmit = (event) => {
+        event.preventDefault();
       
-    //     if (!report_file) {
-    //       showErrorNotification("Сначала выберите файл отчёта");
-    //       return;
-    //     }
+        if (!report_file) {
+          showErrorNotification("Сначала выберите файл отчёта");
+          return;
+        }
       
-    //     const reader = new FileReader();
-    //     reader.onload = async (e) => {
-    //       try {
-    //         // 1) Парсинг
-    //         setLoading(true);
-    //         setLoadingText("Происходит парсинг отчёта...");
-    //         const { parsedData, uniqueFilesData, parseDuration } = await parseHTML(
-    //           e.target.result,
-    //           computerIdentifier
-    //         );
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            // 1) Парсинг
+            setLoading(true);
+            setLoadingText("Происходит парсинг отчёта...");
+            const { parsedData, uniqueFilesData, parseDuration } = await parseHTML(
+              e.target.result,
+              computerIdentifier
+            );
       
-    //         setUniqueFiles(uniqueFilesData.uniqueFiles);
-    //         setReportNumber(parsedData.reportNumber);
-    //         setParseDurationMs(parseDuration.toFixed(2));
+            setUniqueFiles(uniqueFilesData.uniqueFiles);
+            setReportNumber(parsedData.reportNumber);
+            setParseDurationMs(parseDuration.toFixed(2));
       
-    //         // 2) Загрузка на сервер
-    //         setLoadingText("Отчёт загружается на сервер...");
-    //         await csrfToken();
-    //         const response = await api().post("/api/admin/upload", parsedData);
+            // 2) Загрузка на сервер
+            setLoadingText("Отчёт загружается на сервер...");
+            await csrfToken();
+            const response = await api().post("/api/admin/upload", parsedData);
       
-    //         setUploadDurationMs(response.data.uploadDuration);
-    //         showSuccessNotification(response.data.message);
-    //         setShowConfirmModal(true);
+            setUploadDurationMs(response.data.uploadDuration);
+            showSuccessNotification(response.data.message);
+            setShowConfirmModal(true);
       
-    //       } catch (error) {
-    //         const msg = error.response?.data?.message || error.message;
-    //         showErrorNotification(msg);
-    //       } finally {
-    //         setLoading(false);
-    //       }
-    //     };
+          } catch (error) {
+            const msg = error.response?.data?.message || error.message;
+            showErrorNotification(msg);
+          } finally {
+            setLoading(false);
+          }
+        };
       
-    //     // Читаем файл из стейта
-    //     reader.readAsText(report_file);
-    // };
+        // Читаем файл из стейта
+        reader.readAsText(report_file);
+    };
       
 
     // Обработчик отправки задания
-    const handleTaskSubmit = async (taskData) => {
-          console.log(taskData);
+    // const handleTaskSubmit = async (taskData) => {
+    //       console.log(taskData);
 
-        try {
-            setLoading(true);
-            setLoadingText("Получение данных для задания...");
+    //     try {
+    //         setLoading(true);
+    //         setLoadingText("Получение данных для задания...");
 
-            await csrfToken();
-            const response = await api().post("/api/admin/tasks", taskData);
+    //         await csrfToken();
+    //         const response = await api().post("/api/admin/tasks", taskData);
 
-            showSuccessNotification("Задание успешно создано");
-            clearFields();
-            // console.log(response);
-        } catch (error) {
-            showErrorNotification(error.response?.data?.error || "Ошибка создания задания");
-        } finally {
-            setLoading(false);
-        }
-    };
+    //         showSuccessNotification("Задание успешно создано");
+    //         clearFields();
+    //         // console.log(response);
+    //     } catch (error) {
+    //         showErrorNotification(error.response?.data?.error || "Ошибка создания задания");
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
 
     const clearFields = () => {
         setFile(null);
