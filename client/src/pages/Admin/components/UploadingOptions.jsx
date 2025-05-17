@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Button } from "react-bootstrap";
+import { Button } from "antd";
+import { PlusOutlined, RollbackOutlined } from "@ant-design/icons";
 import c from "../pages/pagesModules/Uploading.module.css"; // Предполагается, что у вас есть файл стилей
 
 const UploadingOptions = ({
@@ -64,9 +65,10 @@ const UploadingOptions = ({
                         marginTop: "10px",
                         marginBottom: "10px",
                         marginLeft: "10px",
-                        width: "200px",
+                        // width: "170px",
                     }}
                     variant="secondary"
+                    icon={isAddingNew ? <RollbackOutlined /> : <PlusOutlined />}
                     onClick={swapVariant}
                 >
                     {isAddingNew ? "Вернуться к списку" : "Добавить новое"}

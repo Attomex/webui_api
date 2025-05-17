@@ -1,43 +1,29 @@
 import React, { useEffect, useState } from "react";
-import { Bar } from "react-chartjs-2";
-import "chart.js/auto";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import api from "../../../../../utils/api";
 import { Spinner } from "react-bootstrap";
 import c from "../ChartsModules/MainModule.module.css";
 
 const TopIdentifiersCount = () => {
-    const [chartData, setChartData] = useState({});
+    const [chartData, setChartData] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchChartData = async () => {
-            // Загрузка данных с сервера
             api()
-                .get("/api/admin/identifierscount") // Используем новый эндпоинт
+                .get("/api/admin/identifierscount")
                 .then((response) => {
                     const data = response.data;
+                    
+                    // Фильтруем и преобразуем данные для Recharts
+                    const filteredData = data
+                        .filter((item) => item.count > 0)
+                        .map((item) => ({
+                            identifier_number: item.identifier_number.toString(),
+                            count: item.count
+                        }));
 
-                    // Фильтруем данные: удаляем идентификаторы с count = 0
-                    const filteredData = data.filter((item) => item.count > 0);
-
-                    // Форматируем данные для графика
-                    const labels = filteredData.map(
-                        (item) => item.identifier_number
-                    );
-                    const counts = filteredData.map((item) => item.count);
-
-                    setChartData({
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: "Количество идентификаторов",
-                                data: counts,
-                                backgroundColor: "rgba(75, 192, 192, 0.2)", // Цвет заливки
-                                borderColor: "rgba(75, 192, 192, 1)", // Цвет границы
-                                borderWidth: 1,
-                            },
-                        ],
-                    });
+                    setChartData(filteredData);
                 })
                 .catch((error) => {
                     console.error("Ошибка при загрузке данных:", error);
@@ -47,33 +33,6 @@ const TopIdentifiersCount = () => {
 
         fetchChartData();
     }, []);
-
-    const options = {
-        indexAxis: "y", // Горизонтальный график
-        scales: {
-            x: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1,
-                    callback: function (value) {
-                        if (Number.isInteger(value)) {
-                            return value;
-                        }
-                        return "";
-                    },
-                },
-            },
-        },
-        plugins: {
-            legend: {
-                display: true,
-                position: "top",
-            },
-            tooltip: {
-                enabled: true,
-            },
-        },
-    };
 
     return (
         <div className={c.main__bars__container}>
@@ -85,8 +44,36 @@ const TopIdentifiersCount = () => {
                         <span>Загрузка графика</span>
                     </div>
                 </div>
-            ) : chartData.labels && chartData.labels.length > 0 ? (
-                <Bar data={chartData} options={options} />
+            ) : chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={400}>
+                    <BarChart
+                        data={chartData}
+                        layout="vertical"
+                        margin={{
+                            top: 20,
+                            right: 30,
+                            left: 20,
+                            bottom: 5,
+                        }}
+                    >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" allowDecimals={false} />
+                        <YAxis 
+                            dataKey="identifier_number" 
+                            type="category" 
+                            width={80} 
+                            tick={{ fontSize: 12 }}
+                        />
+                        <Tooltip />
+                        <Legend />
+                        <Bar 
+                            dataKey="count" 
+                            name="Количество идентификаторов"
+                            fill="#4bc0c0" 
+                            fillOpacity={0.8}
+                        />
+                    </BarChart>
+                </ResponsiveContainer>
             ) : (
                 <p>Нет данных для отображения</p>
             )}

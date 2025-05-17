@@ -7,7 +7,7 @@ import Comparison from "./pages/Comparison";
 // import CreateAdmin from './pages/CreateAdmin'
 import ViewReports from "./pages/ViewReports";
 import Uploading from "./pages/Uploading";
-import DownloadReport from "./pages/DownloadReport";
+// import DownloadReport from "./pages/DownloadReport";
 import VulnerabilitiesPage from "./shared/VulnerabilitiesPage/VulnerabilitiesPage";
 
 import AdminLayout from "./layout/adminLayout";
@@ -45,10 +45,10 @@ const AdminPanel = () => {
                                         path="/upload"
                                         element={<Uploading />}
                                     />
-                                    <Route
+                                    {/* <Route
                                         path="/download"
                                         element={<DownloadReport />}
-                                    />
+                                    /> */}
                                     <Route
                                         path="/view/vulnerabilities"
                                         element={<VulnerabilitiesPage />}

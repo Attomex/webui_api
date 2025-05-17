@@ -72,7 +72,7 @@ const LoginPage = () => {
                     }}
                     icon={<ArrowLeftOutlined />}
                 >
-                    Вернуться назад
+                    Вернуться на главную
                 </AntdButton>
                 <Card.Body>
                     <h2 className="text-center mb-4">Вход</h2>

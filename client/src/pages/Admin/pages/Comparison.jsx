@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import "../scss/style.scss";
-import { Button } from "react-bootstrap";
 import "./pagesModules/ViewReports.css";
 import api from "../../../utils/api";
 import downloadResultComparisonExcel from "../scripts/downloadResultComparisonExcel";
 
-import { Modal } from "antd";
+import { Modal, Button } from "antd";
+import { DownloadOutlined } from "@ant-design/icons";
 
 import { useAuth } from "../context/AuthContext";
 
@@ -184,9 +184,9 @@ const Comparison = () => {
 
     return (
         <div style={{ marginLeft: "10px", marginRight: "15px" }}>
-            <h2>Сравнение двух отчётов</h2>
-            <h1 style={{ color: "grey", fontSize: "12px" }}>
-                * Сравнение производится по одному идентификатору компьютера
+            <h2 style={{ marginBottom: "4px" }}>Сравнение двух отчётов</h2>
+            <h1 style={{ color: "grey", fontSize: "12px", marginBottom: "12px" }}>
+                <span style={{ color: "red" }}>*</span> Сравнение производится по одному идентификатору компьютера
             </h1>
             <form onSubmit={handleSubmit}>
                 <table>
@@ -252,23 +252,28 @@ const Comparison = () => {
                         marginTop: "10px",
                         marginBottom: "10px",
                         width: "200px",
+                        fontSize: "16px"
                     }}
-                    as="input"
-                    type="submit"
-                    value="Сравнить отчёты"
-                />
+                    type="primary"
+                    htmlType="submit"
+                >
+                    Сравнить отчёты
+                </Button>
                 {Object.keys(data).length > 0 && (
                     <Button
                         style={{
                             marginTop: "10px",
                             marginBottom: "10px",
                             marginLeft: "10px",
+                            fontSize: "16px",
                         }}
-                        as="input"
-                        type="button"
-                        value="Скачать результаты сравнения"
+                        icon={<DownloadOutlined style={{ marginRight: "5px" }} />}
+                        variant="solid"
+                        color="green"
                         onClick={showModal}
-                    ></Button>
+                    >
+                        Скачать результаты сравнения
+                    </Button>
                 )}
             </form>
             {comparisonStatus && (
@@ -283,6 +288,7 @@ const Comparison = () => {
                 open={isModalOpen}
                 onOk={handleOk}
                 onCancel={handleCancel}
+                centered
                 confirmLoading={downloadingComparison}
             >
                 <p>Вы уверены, что скачать результаты сравнения отчёта?</p>

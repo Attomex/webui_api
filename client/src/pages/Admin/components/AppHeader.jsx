@@ -1,152 +1,57 @@
-import React, { useRef } from "react";
-import { NavLink } from "react-router-dom";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 
-import c from "./AppHeaderLinks.module.css";
+import { Button } from "antd";
+import { HomeOutlined, MenuOutlined } from "@ant-design/icons";
 
-import {
-    CContainer,
-    // CDropdown,
-    // CDropdownItem,
-    // CDropdownMenu,
-    // CDropdownToggle,
-    CHeader,
-    CHeaderNav,
-    // CHeaderToggler,
-    CNavLink,
-    CNavItem,
-    // useColorModes,
-} from "@coreui/react";
-// import CIcon from "@coreui/icons-react";
-// import {
-//     cilBell,
-//     cilContrast,
-//     cilEnvelopeOpen,
-//     cilList,
-//     cilMenu,
-//     cilMoon,
-//     cilSun,
-// } from "@coreui/icons";
+import { CContainer, CHeader, CHeaderNav, CNavItem } from "@coreui/react";
 
-// import { AppHeaderDropdown } from "./header/index";
 import { logOut } from "../../../utils/auth";
-
-import { Button } from "react-bootstrap";
-
 import { useAuth } from "../context/AuthContext";
 
-const AppHeader = () => {
+const AppHeader = ({ toggleSidebar }) => {
     const { user } = useAuth();
     const name = user?.name;
-
-    const headerRef = useRef();
-    // const { colorMode, setColorMode } = useColorModes(
-    //     "coreui-free-react-admin-template-theme"
-    // );
-
-    // useEffect(() => {
-    //     setColorMode("light");
-    //     document.addEventListener("scroll", () => {
-    //         headerRef.current &&
-    //             headerRef.current.classList.toggle(
-    //                 "shadow-sm",
-    //                 document.documentElement.scrollTop > 0
-    //             );
-    //     });
-    // }, []);
+    const navigate = useNavigate();
 
     return (
-        <CHeader position="sticky" className="mb-4 p-0  " ref={headerRef}>
-            <CContainer className="border-bottom px-4" fluid>
-                <CHeaderNav className="d-none d-md-flex">
-                    <CNavItem>
-                        <CNavLink
-                            className={c.head_link}
-                            to = '/'
-                            // style={{ cursor: "pointer", color: "black" }}
-                            as={NavLink}
-                        >
-                            Вернуться на сайт
-                        </CNavLink>
-                        <CNavLink
-                            className={c.head_link}
-                            to = '/admin'
-                            // style={{ cursor: "pointer" }}
-                            as={NavLink}
-                        >
-                            Главная
-                        </CNavLink>
-                    </CNavItem>
-                </CHeaderNav>
-                <CHeaderNav>
-                    {/* <li className="nav-item py-1">
-                        <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
-                    </li> */}
-                    {/* <CDropdown variant="nav-item" placement="bottom-end">
-                        <CDropdownToggle caret={false}>
-                            {colorMode === "dark" ? (
-                                <CIcon icon={cilMoon} size="lg" />
-                            ) : colorMode === "auto" ? (
-                                <CIcon icon={cilContrast} size="lg" />
-                            ) : (
-                                <CIcon icon={cilSun} size="lg" />
-                            )}
-                        </CDropdownToggle>
-                        <CDropdownMenu>
-                            <CDropdownItem
-                                active={colorMode === "light"}
-                                className="d-flex align-items-center"
-                                as="button"
-                                type="button"
-                                onClick={() => setColorMode("light")}
+        <CHeader position="sticky" className="mb-4 p-0">
+            <CContainer className="border-bottom px-4 d-flex justify-content-between align-items-center" fluid>
+                {/* Левая часть */}
+                <div className="d-flex align-items-center">
+                    <Button
+                        icon={<MenuOutlined />}
+                        type="text"
+                        onClick={toggleSidebar}
+                        className="d-lg-none"
+                        style={{ fontSize: "20px", marginRight: "10px" }}
+                    />
+                    <CHeaderNav className="d-none d-md-flex">
+                        <CNavItem>
+                            <Button
+                                onClick={() => navigate("/")}
+                                style={{ cursor: "pointer", fontSize: "16px" }}
+                                icon={<HomeOutlined />}
                             >
-                                <CIcon
-                                    className="me-2"
-                                    icon={cilSun}
-                                    size="lg"
-                                />{" "}
-                                Light
-                            </CDropdownItem>
-                            <CDropdownItem
-                                active={colorMode === "dark"}
-                                className="d-flex align-items-center"
-                                as="button"
-                                type="button"
-                                onClick={() => setColorMode("dark")}
+                                Вернуться на сайт
+                            </Button>
+                            <Button
+                                onClick={() => navigate("/admin")}
+                                style={{ cursor: "pointer", marginLeft: "10px", fontSize: "16px" }}
                             >
-                                <CIcon
-                                    className="me-2"
-                                    icon={cilMoon}
-                                    size="lg"
-                                />{" "}
-                                Dark
-                            </CDropdownItem>
-                            <CDropdownItem
-                                active={colorMode === "auto"}
-                                className="d-flex align-items-center"
-                                as="button"
-                                type="button"
-                                onClick={() => setColorMode("auto")}
-                            >
-                                <CIcon
-                                    className="me-2"
-                                    icon={cilContrast}
-                                    size="lg"
-                                />{" "}
-                                Auto
-                            </CDropdownItem>
-                        </CDropdownMenu>
-                    </CDropdown> */}
-                    <div style={{ display: "flex", alignItems: "center", fontSize: "16px" }}>
-                        Добро пожаловать, {name}! 
-                    </div>
+                                Главная
+                            </Button>
+                        </CNavItem>
+                    </CHeaderNav>
+                </div>
+
+                {/* Правая часть */}
+                <CHeaderNav className="align-items-center">
+                    <div style={{ fontSize: "16px" }}>Добро пожаловать, {name}!</div>
                     <li className="nav-item py-1">
                         <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
                     </li>
-                    {/* <AppHeaderDropdown /> */}
-                    <Button
-                        variant="primary"
-                        onClick={() => logOut()}
-                    >
+                    <Button type="primary" onClick={() => logOut()} style={{ fontSize: "16px" }}>
                         Выйти из админ панели
                     </Button>
                 </CHeaderNav>

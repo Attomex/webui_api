@@ -77,6 +77,13 @@ const VulnerabilitiesPage = () => {
         );
     }
 
+    const changeFileTextLength = (text) => {
+        if (text.length > 80) {
+            return text.slice(0, 80) + "...";
+        }
+        return text;
+    };
+
     // Обработчик поиска
     const handleSearch = (selectedKeys, confirm, dataIndex) => {
         confirm();
@@ -285,7 +292,7 @@ const VulnerabilitiesPage = () => {
                 <>
                     <h2>
                         Связные уязвимости для файла:{" "}
-                        <span style={{ color: "red" }}>{file}</span>
+                        <span style={{ color: "red" }}>{changeFileTextLength(file)}</span>
                     </h2>
                     <ConfigProvider
                         theme={{

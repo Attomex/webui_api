@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
-            $table->string('report_number')->unique();
+            $table->string('report_number')->unique()->index();
             $table->date('report_date');
             $table->integer('total_critical');
             $table->integer('total_high');

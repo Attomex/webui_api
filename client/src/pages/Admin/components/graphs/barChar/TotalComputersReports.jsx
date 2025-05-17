@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
-import { Bar } from "react-chartjs-2";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Spinner } from "react-bootstrap";
 import api from "../../../../../utils/api";
-import "chart.js/auto";
 import c from "../ChartsModules/MainModule.module.css";
 
 const TotalComputersReports = () => {
-    const [chartData, setChartData] = useState({});
+    const [chartData, setChartData] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Загрузка данных с сервера
         const fetchData = async () => {
             Promise.all([
                 api().get(`/api/admin/computerscount`),
@@ -18,41 +16,18 @@ const TotalComputersReports = () => {
             ])
                 .then((responses) => {
                     const computerCount = responses[0].data.count;
-                    const reportCounts = responses[1].data; // Общее количество, активные, неактивные
+                    const reportCounts = responses[1].data;
 
-                    setChartData({
-                        labels: ["Количество"], // Общий заголовок для всех категорий
-                        datasets: [
-                            {
-                                label: "Компьютеры",
-                                data: [computerCount],
-                                backgroundColor: "rgba(54, 162, 235, 0.2)",
-                                borderColor: "rgba(54, 162, 235, 1)",
-                                borderWidth: 1,
-                            },
-                            {
-                                label: "Все отчёты",
-                                data: [reportCounts.total],
-                                backgroundColor: "rgba(75, 192, 192, 0.2)",
-                                borderColor: "rgba(75, 192, 192, 1)",
-                                borderWidth: 1,
-                            },
-                            {
-                                label: "Активные отчёты",
-                                data: [reportCounts.active],
-                                backgroundColor: "rgba(153, 102, 255, 0.2)",
-                                borderColor: "rgba(153, 102, 255, 1)",
-                                borderWidth: 1,
-                            },
-                            {
-                                label: "Неактивные отчёты",
-                                data: [reportCounts.inactive],
-                                backgroundColor: "rgba(255, 159, 64, 0.2)",
-                                borderColor: "rgba(255, 159, 64, 1)",
-                                borderWidth: 1,
-                            },
-                        ],
-                    });
+                    // Преобразуем данные в формат, понятный Recharts
+                    const data = [{
+                        name: "Количество",
+                        computers: computerCount,
+                        totalReports: reportCounts.total,
+                        activeReports: reportCounts.active,
+                        inactiveReports: reportCounts.inactive
+                    }];
+
+                    setChartData(data);
                 })
                 .catch((error) => {
                     console.error("Error fetching counts:", error);
@@ -61,29 +36,6 @@ const TotalComputersReports = () => {
         };
         fetchData();
     }, []);
-
-    const options = {
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1,
-                    callback: function (value) {
-                        if (Number.isInteger(value)) {
-                            return value;
-                        }
-                        return "";
-                    },
-                },
-            },
-        },
-        plugins: {
-            legend: {
-                display: true,
-                position: "top",
-            },
-        },
-    };
 
     return (
         <div className={c.main__bars__container}>
@@ -97,8 +49,50 @@ const TotalComputersReports = () => {
                         <span>Загрузка графика</span>
                     </div>
                 </div>
-            ) : chartData.labels ? (
-                <Bar data={chartData} options={options} />
+            ) : chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={400}>
+                    <BarChart
+                        data={chartData}
+                        margin={{
+                            top: 20,
+                            right: 30,
+                            left: 20,
+                            bottom: 5,
+                        }}
+                    >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis 
+                            allowDecimals={false}
+                        />
+                        <Tooltip />
+                        <Legend />
+                        <Bar 
+                            dataKey="computers" 
+                            name="Компьютеры" 
+                            fill="#36a2eb" 
+                            fillOpacity={0.8}
+                        />
+                        <Bar 
+                            dataKey="totalReports" 
+                            name="Все отчёты" 
+                            fill="#4bc0c0" 
+                            fillOpacity={0.8}
+                        />
+                        <Bar 
+                            dataKey="activeReports" 
+                            name="Активные отчёты" 
+                            fill="#9966ff" 
+                            fillOpacity={0.8}
+                        />
+                        <Bar 
+                            dataKey="inactiveReports" 
+                            name="Неактивные отчёты" 
+                            fill="#ff9f40" 
+                            fillOpacity={0.8}
+                        />
+                    </BarChart>
+                </ResponsiveContainer>
             ) : (
                 <p>Нет данных для отображения</p>
             )}
@@ -107,4 +101,3 @@ const TotalComputersReports = () => {
 };
 
 export default TotalComputersReports;
-    

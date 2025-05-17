@@ -5,9 +5,9 @@ import {
   Modal, 
   Checkbox, 
   Button, 
-  Divider, 
+  // Divider, 
   Typography, 
-  Spin,
+  // Spin,
   Space,
   Row,
   Col

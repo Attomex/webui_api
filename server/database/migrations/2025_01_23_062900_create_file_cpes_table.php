@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('file_cpes', function (Blueprint $table) {
             $table->id();
-            $table->string('cpe')->unique(); // Уникальный CPE-идентификатор
+            $table->string('cpe')->unique()->index(); // Уникальный CPE-идентификатор
             $table->timestamps();
         });
     }
@@ -23,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('file_cpe');
+        Schema::dropIfExists('file_cpes');
     }
 };

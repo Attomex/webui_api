@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { PiSealWarningDuotone } from "react-icons/pi";
-import Card from "react-bootstrap/Card";
+import { Card } from "react-bootstrap";
 import { Button, Dropdown } from "antd";
 import {
     LaptopOutlined,
@@ -77,37 +77,21 @@ const CardM = ({ data }) => {
                         Количество ошибок: {total_error}{" "}
                     </Card.Subtitle>
                     <p className={c.p_style}>
-                        <PiSealWarningDuotone style={{ color: "#FF0000" }} />
+                        <PiSealWarningDuotone style={{ color: "#FF0000", marginRight: "5px" }} />
                         Критических: <b>{data.total_critical}</b>
                     </p>
                     <p className={c.p_style}>
-                        <PiSealWarningDuotone style={{ color: "#FF5000" }} />
+                        <PiSealWarningDuotone style={{ color: "#FF5000", marginRight: "5px" }} />
                         Высоких: <b>{data.total_high}</b>
                     </p>
                     <p className={c.p_style}>
-                        <PiSealWarningDuotone style={{ color: "#FFAF00" }} />
+                        <PiSealWarningDuotone style={{ color: "#FFAF00", marginRight: "5px" }} />
                         Средних: <b>{data.total_medium}</b>
                     </p>
                     <p className={c.p_style}>
-                        <PiSealWarningDuotone style={{ color: "#008000" }} />
-                        Низких: <b>{data.total_low}</b>
+                        <PiSealWarningDuotone style={{ color: "#008000", marginRight: "5px" }} />
+                        Низких:<b>{data.total_low}</b>
                     </p>
-
-                    {/* <b style={{ marginBottom: "0" }}>Поиск...</b> */}
-                    {/* <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        padding: "0 auto",
-                    }}
-                >
-                    <Button type="primary" style={{ alignSelf: "flex-start" }}>
-                        По компьютеру
-                    </Button>
-                    <Button danger style={{ alignSelf: "flex-end" }}>
-                        По отчёту
-                    </Button>
-                </div> */}
                 </Card.Body>
             </Card>
         </Dropdown>

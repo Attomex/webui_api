@@ -28,6 +28,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('identifiers_count');
+        Schema::dropIfExists('identifier_counts');
     }
 };

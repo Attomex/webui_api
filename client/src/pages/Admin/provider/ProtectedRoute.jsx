@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom"; // Добавляем useLocation
-import { Spinner } from "react-bootstrap";
 import Cookies from "js-cookie";
 import { useAuth } from "../context/AuthContext";
 import LoadingSpinner from "../shared/LoadingSpinner/LoadingSpinner";

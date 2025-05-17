@@ -8,12 +8,12 @@ use App\Models\Computer;
 use App\Models\ReportVulnerability;
 use App\Models\IdentifierCount;
 use App\Models\FileCpe;
-use DB;
-use Exception;
-use Symfony\Component\HttpFoundation\Response;
 use App\Models\Vulnerability;
 use App\Models\Identifier;
 use App\Models\File;
+use DB;
+use Exception;
+use Symfony\Component\HttpFoundation\Response;
 use App\Services\LoggerService;
 
 class UploadController extends Controller
@@ -28,138 +28,163 @@ class UploadController extends Controller
     public function store(Request $request)
     {
         $user = $request->user()->email;
+        $startTime = microtime(true);
+        $parsed = $request->json()->all();
 
         DB::beginTransaction();
-
         try {
-            $parsedData = $request->json()->all();
-
-            // Сохранение исходного JSON в файл
-            // $jsonString = json_encode($parsedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-            // $filePath = storage_path('\\app\\reports\\' . uniqid() . '.json');
-            // file_put_contents($filePath, $jsonString);
-
-            // Проверка на существование отчёта с таким номером
-            $existingReport = Report::where('report_number', $parsedData['reportNumber'])->first();
-            if ($existingReport) {
-                return response()->json(['message' => "Отчёт с таким номером уже был загружен!", 'status' => '400'], Response::HTTP_BAD_REQUEST);
+            // 1) Проверяем дубликат отчёта
+            if (Report::where('report_number', $parsed['reportNumber'])->exists()) {
+                return response()->json([
+                    'message' => 'Отчёт с таким номером уже был загружен!',
+                    'status'  => '400'
+                ], Response::HTTP_BAD_REQUEST);
             }
 
-            // Создание или получение компьютера
-            $computer = Computer::firstOrCreate(['identifier' => $parsedData['computerIdentifier']]);
+            // 2) Prefetch & cache ключей для bulk операций
+            $ids = $cpes = $files = $vulnKeys = [];
+            foreach ($parsed['vulnerabilities'] as $v) {
+                $ids      = array_merge($ids, explode('; ', $v['id']));
+                $cpes    = array_merge($cpes, $v['fileCPE'] ?? []);
+                $files   = array_merge($files, $v['files']   ?? []);
+                $vulnKeys[]= md5($v['error_level'].$v['title'].$v['description']);
+            }
+            $ids      = array_unique($ids);
+            $cpes    = array_unique($cpes);
+            $files   = array_unique($files);
+            $vulnKeys= array_unique($vulnKeys);
 
-            // Поиск активного отчёта для этого компьютера
-            $previousActiveReport = $computer->reports()
-                ->where('status', 'активный')
-                ->orderBy('report_date', 'desc')
-                ->first();
+            // 3) Кэш существующих записей
+            $existIds   = Identifier::whereIn('number', $ids)->get()->keyBy('number');
+            $existCpes  = FileCpe::whereIn('cpe', $cpes)->get()->keyBy('cpe');
+            $existFiles = File::whereIn('file_path', $files)->get()->keyBy('file_path');
+            $existV     = Vulnerability::select('id', DB::raw("md5(concat(error_level, name, description)) as hash"))
+                            ->whereIn(DB::raw("md5(concat(error_level, name, description))"), $vulnKeys)
+                            ->get()->keyBy('hash');
 
-            // Если есть активный отчёт, деактивируем его и уменьшаем счётчики идентификаторов
-            if ($previousActiveReport) {
-                $previousActiveReport->update(['status' => 'неактивный']);
-
-                // Уменьшаем счётчики идентификаторов из предыдущего отчёта
-                $previousIdentifiers = DB::table('report_vulnerability_identifiers')
-                    ->join('report_vulnerability', 'report_vulnerability_identifiers.report_vulnerability_id', '=', 'report_vulnerability.id')
-                    ->where('report_vulnerability.report_id', $previousActiveReport->id)
-                    ->pluck('identifier_id');
-
-                foreach ($previousIdentifiers as $identifierId) {
-                    $identifierCount = IdentifierCount::where('identifier_id', $identifierId)->first();
-                    if ($identifierCount) {
-                        $identifierCount->decrement('count');
-                    }
+            // 4) Bulk-upsert новых Identifier, FileCpe, File, Vulnerability
+            $now = now();
+            // Identifiers
+            $newIds = [];
+            foreach ($ids as $num) {
+                if (!isset($existIds[$num])) {
+                    $newIds[] = ['number'=>$num,'created_at'=>$now,'updated_at'=>$now];
                 }
             }
+            if ($newIds) {
+                Identifier::insert($newIds);
+                $existIds = Identifier::whereIn('number', $ids)->get()->keyBy('number');
+            }
+            // CPE
+            $newCpes = [];
+            foreach ($cpes as $c) {
+                if (!isset($existCpes[$c])) {
+                    $newCpes[] = ['cpe'=>$c,'created_at'=>$now,'updated_at'=>$now];
+                }
+            }
+            if ($newCpes) {
+                FileCpe::insert($newCpes);
+                $existCpes = FileCpe::whereIn('cpe', $cpes)->get()->keyBy('cpe');
+            }
+            // Files (bulk insertIgnore)
+            if (!empty($files)) {
+                $fileRows = [];
+                foreach ($files as $f) {
+                    $fileRows[] = ['file_path'=>$f,'created_at'=>$now,'updated_at'=>$now];
+                }
+                DB::table((new File)->getTable())->insertOrIgnore($fileRows);
+            }
+            // Reload cache всегда, чтобы не было пропущенных ключей
+            $existFiles = File::whereIn('file_path', $files)->get()->keyBy('file_path');
 
-            // Создание нового отчёта
+            // Vulnerabilities
+            $newV = [];
+            foreach ($parsed['vulnerabilities'] as $v) {
+                $key = md5($v['error_level'].$v['title'].$v['description']);
+                if (!isset($existV[$key])) {
+                    $newV[] = [
+                        'error_level'=> $v['error_level'],
+                        'name'=> $v['title'],
+                        'description'=> $v['description'],
+                        'source_links'=> implode(',', $v['references']),
+                        'remediation_measures'=> $v['measures'],
+                        'file_cpe_id'=> $existCpes[$v['fileCPE'][0]]->id ?? null,
+                        'created_at'=> $now,'updated_at'=> $now,
+                    ];
+                }
+            }
+            if ($newV) {
+                Vulnerability::insert($newV);
+                $existV = Vulnerability::select('id', DB::raw("md5(concat(error_level, name, description)) as hash"))
+                            ->whereIn(DB::raw("md5(concat(error_level, name, description))"), $vulnKeys)
+                            ->get()->keyBy('hash');
+            }
+
+            // 5) Обработка компьютера и предыдущего отчёта
+            $computer = Computer::firstOrCreate(['identifier'=>$parsed['computerIdentifier']]);
+            $prev = $computer->reports()->where('status','активный')->orderBy('report_date','desc')->first();
+            if ($prev) {
+                $prev->update(['status'=>'неактивный']);
+                $prevIds = DB::table('report_vulnerability_identifiers')
+                    ->join('report_vulnerability','report_vulnerability_identifiers.report_vulnerability_id','=','report_vulnerability.id')
+                    ->where('report_vulnerability.report_id',$prev->id)
+                    ->pluck('identifier_id')->toArray();
+                IdentifierCount::whereIn('identifier_id',$prevIds)->where('count','>',0)->decrement('count');
+            }
+
+            // 6) Создание нового отчёта
             $report = $computer->reports()->create([
-                'report_date' => $parsedData['reportDate'],
-                'report_number' => $parsedData['reportNumber'],
-                'total_critical' => $parsedData['totalCritical'],
-                'total_high' => $parsedData['totalHigh'],
-                'total_medium' => $parsedData['totalMedium'],
-                'total_low' => $parsedData['totalLow'],
-                'status' => 'активный' // Новый отчёт всегда активный
+                'report_date'=> $parsed['reportDate'], 'report_number'=> $parsed['reportNumber'],
+                'total_critical'=> $parsed['totalCritical'], 'total_high'=> $parsed['totalHigh'],
+                'total_medium'=> $parsed['totalMedium'], 'total_low'=> $parsed['totalLow'],
+                'status'=>'активный',
             ]);
 
-            foreach ($parsedData["vulnerabilities"] as $vulnerabilityData) {
-                // Разделение идентификаторов
-                $identifierNumbers = explode('; ', $vulnerabilityData['id']);
+            // 7) Bulk insert pivots
+            $rvRows=[]; foreach ($parsed['vulnerabilities'] as $v) {
+                $hash=md5($v['error_level'].$v['title'].$v['description']);
+                $rvRows[]= ['report_id'=>$report->id,'vulnerability_id'=>$existV[$hash]->id,
+                            'created_at'=>$now,'updated_at'=>$now];
+            }
+            ReportVulnerability::insertOrIgnore($rvRows);
+            $rvs = ReportVulnerability::where('report_id',$report->id)->get()->keyBy('vulnerability_id');
 
-                $fileCpe = null;
-                if(!empty($vulnerabilityData['fileCPE'])) {
-                    foreach ($vulnerabilityData['fileCPE'] as $cpe) {
-                        $fileCpe = FileCpe::firstOrCreate(['cpe' => $cpe]);
-                    }
+            $rviRows=[]; $rvfRows=[];
+            foreach ($parsed['vulnerabilities'] as $v) {
+                $hash = md5($v['error_level'].$v['title'].$v['description']);
+                $rvId = $rvs[$existV[$hash]->id]->id;
+                foreach (explode('; ',$v['id']) as $num) {
+                    $iden = $existIds[$num] ?? null;
+                    if (!$iden) continue;
+                    $rviRows[]=['report_vulnerability_id'=>$rvId,'identifier_id'=>$iden->id,
+                                'created_at'=>$now,'updated_at'=>$now];
+                    IdentifierCount::firstOrCreate(['identifier_id'=>$iden->id],['count'=>0])->increment('count');
                 }
-
-                // Проверка и создание уязвимости
-                $vulnerability = Vulnerability::firstOrCreate([
-                    'error_level' => $vulnerabilityData['error_level'],
-                    'description' => $vulnerabilityData['description'],
-                    'source_links' => implode(',', $vulnerabilityData['references']),
-                    'name' => $vulnerabilityData['title'],
-                    'remediation_measures' => $vulnerabilityData['measures'],
-                    'file_cpe_id' => $fileCpe?->id,
-                ]);
-
-                // Создание промежуточной записи report_vulnerability
-                $reportVulnerability = ReportVulnerability::firstOrCreate([
-                    'report_id' => $report->id,
-                    'vulnerability_id' => $vulnerability->id
-                ]);
-
-                // Обработка идентификаторов и их связи
-                foreach ($identifierNumbers as $number) {
-                    $identifier = Identifier::firstOrCreate(['number' => $number]);
-
-                    // Связь идентификатора с уязвимостью
-                    DB::table('report_vulnerability_identifiers')->updateOrInsert([
-                        'report_vulnerability_id' => $reportVulnerability->id,
-                        'identifier_id' => $identifier->id
-                    ]);
-
-                    // Обновление счётчика идентификаторов
-                    $identifierCount = IdentifierCount::firstOrCreate(
-                        ['identifier_id' => $identifier->id],
-                        ['count' => 0]
-                    );
-                    $identifierCount->increment('count');
-                }
-
-                // Обработка файлов и их связи
-                foreach ($vulnerabilityData['files'] as $filePath) {
-                    if ($filePath) {
-                        $file = File::firstOrCreate(['file_path' => $filePath]);
-                        DB::table('report_vulnerability_files')->updateOrInsert([
-                            'report_vulnerability_id' => $reportVulnerability->id,
-                            'file_id' => $file->id
-                        ]);
-                    }
+                foreach ($v['files'] as $fp) {
+                    if (empty($fp) || !isset($existFiles[$fp])) continue;
+                    $file = $existFiles[$fp];
+                    $rvfRows[]=['report_vulnerability_id'=>$rvId,'file_id'=>$file->id,
+                                'created_at'=>$now,'updated_at'=>$now];
                 }
             }
-
-            // Сохранение исходного JSON в файл
-            // $jsonString = json_encode($parsedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-            // $filePath = storage_path('\\app\\reports\\' . uniqid() . '.json');
-            // file_put_contents($filePath, $jsonString);
+            DB::table('report_vulnerability_identifiers')->insertOrIgnore($rviRows);
+            DB::table('report_vulnerability_files')->insertOrIgnore($rvfRows);
 
             DB::commit();
-            $this->loggerService->log('Загрузка отчета', $user, [
-                'report_number' => $report->report_number,
-                'report_date' => $report->report_date,
-                'computer' => $computer->identifier
-            ]);
-            return response()->json(['message' => "Отчет успешно загружен"]);
+            $duration = round((microtime(true)-$startTime)*1000,4);
+            $this->loggerService->log('Загрузка отчета',$user,['report_number'=>$report->report_number,'report_date'=>$report->report_date]);
+
+            return response()->json(['message'=>'Отчет успешно загружен','uploadDuration'=>$duration]);
         } catch (Exception $e) {
             DB::rollBack();
-            $this->loggerService->log('Ошибка при загрузке отчета', $user, [
-                'error' => $e->getMessage()
-            ], 'error');
-            \Log::error('Ошибка при загрузке отчета: ' . $e->getMessage());
-
-            return response()->json(['message' => "Произошла ошибка при загрузке отчета: " . $e->getMessage(), 'status' => '500'], Response::HTTP_INTERNAL_SERVER_ERROR);
+            $this->loggerService->log('Ошибка при загрузке отчета',$user,['error'=>$e->getMessage()],'error');
+            return response()->json(['message'=>"Произошла ошибка: {$e->getMessage()}",'status'=>'500'],Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
+            // Сохранение исходного JSON в файл
+            // $jsonString = json_encode($parsedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            // $filePath = storage_path('\\app\\reports\\' . uniqid() . '.json');
+            // file_put_contents($filePath, $jsonString);
+
+

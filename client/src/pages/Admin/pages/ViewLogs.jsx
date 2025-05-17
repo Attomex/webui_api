@@ -95,7 +95,7 @@ const ViewLogs = () => {
 
     return (
         <div style={{ marginLeft: "10px" }}>
-            <h1>Просмотр логов</h1>
+            <h2>Просмотр логов</h2>
 
             {loadingDates ? (
                 <LoadingSpinner text="Загрузка доступных дат логов..."  variant="info" animation="border"/>
@@ -123,6 +123,7 @@ const ViewLogs = () => {
                         type="primary"
                         loading={loadingLogs}
                         onClick={handleSubmit}
+                        style={{ fontSize: "16px" }}
                     >
                         Просмотр
                     </Button>

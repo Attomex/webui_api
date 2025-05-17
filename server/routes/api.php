@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MainPageController;
+use App\Http\Controllers\TaskGenerateController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MainPageAdminController;
@@ -37,6 +38,8 @@ Route::prefix('admin')->middleware('jwt.auth')->group(function () {
     Route::get('/view/vulnerabilities', [ViewController::class, 'getVulnerabilities']);
 
     Route::get('/search-by-date', [ViewController::class, 'searchByDates']);
+
+    Route::post('/tasks', [TaskGenerateController::class, 'generateTask' ]);
 });
 
 Route::prefix('logs')->middleware('jwt.auth')->group(function () {

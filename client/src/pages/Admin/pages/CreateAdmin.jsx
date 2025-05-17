@@ -89,7 +89,7 @@ const CreateAdmin = () => {
                     danger
                     onClick={() => handleDelete(record.id)}
                 >
-                    Удалить
+                    УВОЛИТЬ!!!
                 </Button>
             ),
         },

@@ -30,11 +30,12 @@ const BugReportModal = ({ openModal, onClose }) => {
             title="Сообщить об ошибке"
             open={openModal}
             onCancel={onClose}
+            width={600}
             footer={
                 <div
                     style={{
-                        color: "grey",
-                        fontSize: "14px",
+                        color: "rgba(0, 0, 0, 0.65)",
+                        fontSize: "12px",
                         textAlign: "center",
                     }}
                 >
@@ -67,9 +68,9 @@ const BugReportModal = ({ openModal, onClose }) => {
                         },
                     ]}
                 >
-                    <Input.TextArea />
+                    <Input.TextArea style={{ height: "100px" }}/>
                 </Form.Item>
-                <Form.Item style={{ display: "flex", justifyContent: "right" }}>
+                <Form.Item style={{ display: "flex", justifyContent: "right", marginBottom: "0px !important" }}>
                     <Button
                         type="primary"
                         htmlType="submit"

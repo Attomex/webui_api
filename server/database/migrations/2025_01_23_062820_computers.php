@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('computers', function (Blueprint $table) {
             $table->id();
-            $table->string('identifier')->unique();
+            $table->string('identifier')->unique()->index();
             $table->timestamps();
         });
     }
