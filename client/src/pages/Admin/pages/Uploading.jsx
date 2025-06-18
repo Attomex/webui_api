@@ -151,7 +151,7 @@ const Uploading = () => {
       
             setUploadDurationMs(response.data.uploadDuration);
             showSuccessNotification(response.data.message);
-            setShowConfirmModal(true);
+            // setShowConfirmModal(true);
       
           } catch (error) {
             const msg = error.response?.data?.message || error.message;

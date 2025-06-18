@@ -12,6 +12,10 @@ const Main = () => {
   // const [error, setError] = useState(false);
 
   useEffect(() => {
+    document.title = 'Главная страница';
+  }, []);
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);

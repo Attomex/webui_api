@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Form, Button, Alert, Container, Card } from "react-bootstrap";
 import { Button as AntdButton } from "antd";
@@ -19,6 +19,10 @@ const LoginPage = () => {
     const url = process.env.REACT_APP_API_URL;
 
     const from = location.state?.from || "/admin";
+
+    useEffect(() => {
+        document.title = "Авторизация";
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
